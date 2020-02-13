@@ -1,6 +1,6 @@
 在线的歌单批量下载器
 
-[demo](3088482189.github.io/music-playlist-downloader)
+[demo](https://3088482189.github.io/music-playlist-downloader)
 
 请使用`Chrome`或`Firefox`
 
