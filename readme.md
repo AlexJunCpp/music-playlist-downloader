@@ -8,6 +8,6 @@
 
 使用到的其他项目:
 
-	1. [MetingJS](https://github.com/metowolf/MetingJS)
+1. [MetingJS](https://github.com/metowolf/MetingJS)
 
- 	2. [mdui](https://github.com/zdhxiong/mdui)
+2. [mdui](https://github.com/zdhxiong/mdui)
