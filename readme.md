@@ -2,6 +2,10 @@
 
 [demo](https://3088482189.github.io/music-playlist-downloader)
 
+![demo1.png](demo1.png)
+
+![demo2.png](demo2.png)
+
 请使用`Chrome`或`Firefox`
 
 (不支持某些付费曲目)
