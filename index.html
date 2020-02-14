@@ -69,16 +69,17 @@
         function play(i) {
             $("#player").attr("src", list[i].url);
             $("#player").play();
+            now=i;
         }
 
         function pre() {
-            if (now > 0) play(--now);
-            else play(now = list.length - 1);
+            if (now > 0) play(now-1);
+            else play(list.length - 1);
         }
 
         function nxt() {
-            if (now < list.length - 1) play(++now);
-            else play(now = 0)
+            if (now < list.length - 1) play(now+1);
+            else play(0)
         }
 
         function rnd() {
