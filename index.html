@@ -113,9 +113,9 @@
         }
 
         function download(id, typ) {
-            var name = list[id].artist + " - " + list[id].name;
-            if ($("#download_name").val() == 1) name = list[id].name + " - " + list[id].artist;
-            else if ($("#download_name").val() == 2) name = list[id].name;
+            var name = list[id].author + " - " + list[id].title;
+            if ($("#download_name").val() == 1) name = list[id].title + " - " + list[id].author;
+            else if ($("#download_name").val() == 2) name = list[id].title;
 
             if (typ == 2) res += "wget \"" + list[i].url + "\" -O \"" + name + ".mp3\"\n";
             else {
