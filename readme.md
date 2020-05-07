@@ -1,6 +1,6 @@
 在线的歌单批量下载器
 
-[demo](https://3088482189.github.io/music-playlist-downloader)
+[demo](https://zcmimi.github.io/music-playlist-downloader)
 
 ![demo1.png](demo1.png)
 
