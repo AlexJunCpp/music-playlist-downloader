@@ -176,8 +176,7 @@
                 if (b == 0) $("#songlist").append(node(i));
                 else {
                     download(i, b);
-                    await sleep(1000);
-                    while (is_downloading) await sleep(1000);
+                    while (is_downloading) await sleep(500);
                 }
 
             mdui.mutation();
