@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <title>歌单下载器(by zcmimi)</title>
-    <link rel="stylesheet" href="./add/mdui/css/mdui.min.css" />
-    <script src="./add/mdui/js/mdui.min.js"></script>
-    <script src='./add/jq.js'></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/zcmimi/cdn@master/assets/mdui-all/css/mdui.min.css">
+    <script src="https://cdn.jsdelivr.net/gh/zcmimi/cdn@master/assets/mdui-all/js/mdui.min.js"></script>
+    <script src='https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js'></script>
 </head>
-
 <body class="mdui-theme-accent-blue mdui-list mdui-appbar-with-toolbar padding-top">
     <div class='mdui-appbar mdui-shadow-2 mdui-appbar-fixed' style='max-width: 500px'>
         <div class='mdui-toolbar mdui-color-white'>
@@ -22,179 +20,44 @@
                 <input id='playlistid' class='mdui-textfield-input' placeholder='请输入歌单id'>
             </div>
             <div class='mdui-toolbar-spacer'></div>
-            <button class="mdui-btn mdui-btn-raised mdui-ripple" onclick="javascript:render(0)">加载全部</button>
+            <button class="mdui-btn mdui-btn-raised mdui-ripple" onclick="render(0)">加载全部</button>
         </div>
         <div class='mdui-toolbar mdui-color-white'>
             <select id="download_name" class="mdui-select">
-                <option value=0>歌手 - 歌曲名</option>
-                <option value=1>歌曲名 - 歌手</option>
+                <option value=1>歌曲名-歌手</option>
+                <option value=0>歌手-歌曲名</option>
                 <option value=2>歌曲名</option>
             </select>
             <label class="mdui-checkbox">
-                <input id="download_lrc" type="checkbox" checked />
-                <i class="mdui-checkbox-icon"></i>
-                下载歌词
+                <input id="download_lrc" type="checkbox" checked>
+                <i class="mdui-checkbox-icon"></i>下载歌词
             </label>
             <div class='mdui-toolbar-spacer'></div>
-            <button class="mdui-btn mdui-btn-raised mdui-color-blue mdui-text-color-white mdui-ripple"
-                onclick="javascript:render(2)" title="推荐">导出链接</button>
+            <button class="mdui-btn mdui-btn-raised mdui-color-blue mdui-text-color-white mdui-ripple" 
+                    mdui-menu="{target: '#export_menu'}" title="推荐">
+                导出链接
+            </button>
+            <ul class="mdui-menu" id="export_menu">
+                <li class="mdui-menu-item">
+                    <a href="javascript:render(2);">使用wget</a>
+                </li>
+                <li class="mdui-menu-item">
+                    <a href="javascript:render(3);">使用certutil</a>
+                </li>
+            </ul>
             <button class="mdui-btn mdui-btn-raised mdui-color-pink-200 mdui-text-color-white mdui-ripple"
-                onclick="javascript:render(1)" title="占用资源,有可能会卡死">下载全部</button>
+                onclick="render(1)" title="占用资源,有可能会卡死">下载全部</button>
         </div>
         <div class='mdui-toolbar mdui-color-white'>
-            <a href="javascript:pre()">
-                <i class='mdui-icon material-icons'>skip_previous</i>
-            </a>
-            <a href="javascript:rnd()">
-                <i class="mdui-icon material-icons">youtube_searched_for</i>
-            </a>
-            <a href="javascript:nxt()">
-                <i class='mdui-icon material-icons'>skip_next</i>
-            </a>
-            <audio id="player" src="" controls="controls" autoplay="autoplay">
-            </audio>
+            <a onclick="pre()"><i class='mdui-icon material-icons'>skip_previous</i></a>
+            <a onclick="rnd()"><i class="mdui-icon material-icons">youtube_searched_for</i></a>
+            <a onclick="nxt()"><i class='mdui-icon material-icons'>skip_next</i></a>
+            <audio id="player" src="" controls="controls" autoplay="autoplay"></audio>
         </div>
     </div>
-    <li class="mdui-list-item"></li>
-    <li class="mdui-list-item"></li>
-    <li class="mdui-list-item"></li>
-    <li class="mdui-list-item"></li>
-    <ul id="songlist" class="mdui-list mdui-appbar-with-toolbar padding-top">
+    <ul id="songlist" class="mdui-list" style="padding-top: 192px;">
     </ul>
-    <script>
-        var is_downloading = 0,
-            list,
-            now = 0,
-            download_lrc = 1,
-            res = "";
-
-        $('#download_lrc').click(function () {
-            download_lrc ^= 1;
-        });
-
-        function node(i) {
-            return "<li class='mdui-list-item mdui-ripple' style='max-width: 500px;'>\
-                <div class='mdui-list-item-avatar'><img src='" + list[i].pic + "'></div>\
-                <a href=\"javascript:play(" + i + ")\" class='mdui-list-item-content'>\
-                    <div class='mdui-list-item-title'>" + list[i].title + "</div>\
-                    <div class='mdui-list-item-text'>" + list[i].author + "</div>\
-                </a>\
-                <a href=\"javascript:download(" + i + ",1)\">\
-                    \<i class='mdui-list-item-icon mdui-icon material-icons'>file_download</i>\
-                </a>\
-            </li>";
-        }
-
-        function play(i) {
-            now = i;
-            $("#player").attr("src", list[i].url);
-            $("#player").play();
-        }
-
-        function pre() {
-            if (now > 0) play(now - 1);
-            else play(list.length - 1);
-        }
-
-        function nxt() {
-            if (now < list.length - 1) play(now + 1);
-            else play(0)
-        }
-
-        function rnd() {
-            play(Math.floor((Math.random() * (list.length - 1))));
-        }
-        document.getElementById("player").addEventListener('ended', function () {
-            rnd();
-        });
-
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
-        function download(id, typ) {
-            var name = list[id].author + " - " + list[id].title;
-            if ($("#download_name").val() == 1) name = list[id].title + " - " + list[id].author;
-            else if ($("#download_name").val() == 2) name = list[id].title;
-
-            if (typ == 2) res += "wget \"" + list[i].url + "\" -O \"" + name + ".mp3\"\n";
-            else {
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', list[id].url, true);
-                xhr.responseType = "blob";
-                xhr.onload = async function () {
-                    is_downloading = 1;
-                    if (this.status === 200) {
-                        var blob = this.response;
-                        var a = document.createElement('a');
-                        a.download = name + ".mp3";
-                        a.href = window.URL.createObjectURL(blob);
-                        a.click();
-                        await sleep(2000);
-                        is_downloading = 0;
-                    }
-                };
-                xhr.send();
-            }
-            if (!download_lrc) return;
-            if (typ == 2) res += "wget \"" + list[i].lrc + "\" -O \"" + name + ".lrc\"\n";
-            else {
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', list[id].lrc, true);
-                xhr.responseType = "blob";
-                xhr.onload = async function () {
-                    is_downloading = 1;
-                    if (this.status === 200) {
-                        var blob = this.response;
-                        var a = document.createElement('a');
-                        a.download = name + ".lrc";
-                        a.href = window.URL.createObjectURL(blob);
-                        a.click();
-                        await sleep(1000);
-                        is_downloading = 0;
-                    }
-                };
-                xhr.send();
-            }
-        }
-        async function render(b) {
-            mdui.snackbar({
-                message: '加载中',
-                timeout: 500,
-                position: 'top'
-            });
-            if (b == 2) res = "";
-            if (b == 0) $("#songlist").html("");
-            var id = $('#playlistid').val(),
-                typ = $('#playlisttyp').val();
-            var t = $.ajax({
-                url: "https://api.i-meto.com/meting/api?server=" + typ + "&type=playlist&id=" + id,
-                async: false
-            }).responseText;
-            list = JSON.parse(t);
-            for (i in list)
-                if (b == 0) $("#songlist").append(node(i));
-                else {
-                    download(i, b);
-                    while (is_downloading) await sleep(500);
-                }
-
-            mdui.mutation();
-            mdui.snackbar({
-                message: '加载完毕',
-                timeout: 500,
-                position: 'top'
-            });
-            if (b == 2) {
-                mdui.snackbar({
-                    message: "请按F12打开控制台(Console)复制,并在终端运行",
-                    timeout: 5000,
-                    position: 'top'
-                });
-                console.log(res);
-            }
-        }
-    </script>
+    <script src='bundle.js'></script>
 </body>
 
 </html>
