@@ -97,12 +97,12 @@ function expt_(id,typ){
     if(typ=='wget')
         res+="wget \""+list[i].url+"\" -O \""+name+".mp3\"\n";
     else if(typ=='certutil')
-        res+="certutil -urlcache -split -f \""+list[i].url+"\" \""+name+".mp3\"\n";
+        res+="certutil -urlcache -split -f \""+list[id].url+"\" \""+name+".mp3\"\n";
     if(!download_lrc)return;
     if(typ=='wget')
         res+="wget \""+list[i].lrc+"\" -O \""+name+".lrc\"\n";
     else if(typ=='certutil')
-        res+="certutil -urlcache -split -f \""+list[i].lrc+"\" \""+name+".lrc\"\n";
+        res+="certutil -urlcache -split -f \""+list[id].lrc+"\" \""+name+".lrc\"\n";
 }
 function expt(typ){
     mdui.snackbar({message: '加载中',timeout: 500,position: 'top'});
