@@ -36,7 +36,7 @@ function download(id,typ){
     if($("#download_name").val()==1)name=list[id].title+"-"+list[id].author;
     else if($("#download_name").val()==2)name=list[id].title;
 
-    if(typ>1){
+    if(typ>0){
         name=name.replace('/\/|\\|\||*|>|<|?|:/g','_');
         var tmp=name,r="/\\*?<>|?:";name='';
         for(var i=0;i<tmp.length;++i)
