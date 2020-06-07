@@ -42,7 +42,6 @@ function download(id,typ){
         for(var i=0;i<tmp.length;++i)
             if(r.indexOf(tmp[i])!=-1)name+='_';
             else name+=tmp[i];
-        console.log(name);
     }
 
     if(typ==2)
