@@ -1,4 +1,6 @@
-在线的歌单批量下载器,支持单首下载,可以试听和预览歌词
+在线的歌单批量下载器,还可以试听和预览歌词
+
+不嫌弃的话可以直接当在线播放器使用
 
 [demo](https://zcmimi.github.io/music-playlist-downloader)
 
