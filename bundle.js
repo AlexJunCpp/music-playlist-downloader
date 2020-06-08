@@ -14,10 +14,10 @@ var is_downloading=0,
     screencenter=window.innerHeight/2,
     issl=[];
 function getlrc(id){
-    var t=$.ajax({
-        url: list[id].lrc,
-        async: false
-    }).responseText;
+    var xhr=new XMLHttpRequest();
+    xhr.open('GET',list[id].lrc,false);
+    xhr.send();
+    var t=xhr.responseText;
     lrcTime=[];
     lrcul=document.getElementById('lrclist');
     lrcul.innerHTML="";
