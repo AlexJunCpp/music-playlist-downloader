@@ -22,7 +22,7 @@
                 <input id='playlistid' class='mdui-textfield-input' placeholder='请输入歌单id'>
             </div>
             <div class='mdui-toolbar-spacer'></div>
-            <button class="mdui-btn mdui-btn-raised mdui-ripple" onclick="genlist()">加载全部</button>
+            <button class="mdui-btn mdui-btn-raised mdui-ripple" onclick="genlist()">加载</button>
         </div>
         <div class='mdui-toolbar mdui-color-white'>
             <select id="download_name" class="mdui-select">
@@ -35,10 +35,9 @@
                 <i class="mdui-checkbox-icon"></i>下载歌词
             </label>
             <div class='mdui-toolbar-spacer'></div>
-            <button class="mdui-btn mdui-btn-raised mdui-color-blue mdui-text-color-white mdui-ripple" 
-                    mdui-menu="{target: '#export_menu'}" title="推荐">
-                导出链接
-            </button>
+            <a mdui-menu="{target: '#export_menu'}" title="导出下载脚本,推荐">
+                <i class="mdui-icon material-icons">subdirectory_arrow_right</i>
+            </a>
             <ul class="mdui-menu" id="export_menu">
                 <li class="mdui-menu-item">
                     <a href="javascript:expt('wget');">使用wget</a>
@@ -47,8 +46,12 @@
                     <a href="javascript:expt('certutil');">使用certutil</a>
                 </li>
             </ul>
-            <button class="mdui-btn mdui-btn-raised mdui-color-pink-200 mdui-text-color-white mdui-ripple"
-                onclick="download()" title="占用资源,有可能会卡死">下载全部</button>
+            <a onclick="download()"" title="占用资源,有可能会卡死">
+                <i class="mdui-icon material-icons">file_download</i>
+            </a>
+            <a onclick="selectrev()" title='反选'>
+                <i class="mdui-icon material-icons">exposure</i>
+            </a>
         </div>
         <div class='mdui-toolbar mdui-color-white'>
             <a onclick="pre()"><i class='mdui-icon material-icons'>skip_previous</i></a>

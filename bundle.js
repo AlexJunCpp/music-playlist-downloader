@@ -11,7 +11,8 @@ var is_downloading=0,
     currentTime,
     lrc_ppxx,
     songlist,
-    screencenter=window.innerHeight/2;
+    screencenter=window.innerHeight/2,
+    issl=[];
 $('#download_lrc').click(function(){download_lrc^=1;});
 function getlrc(id){
     var t=$.ajax({
@@ -140,7 +141,7 @@ async function download(){
     mdui.snackbar({message: '加载中',timeout: 500,position: 'top'});
     get();
     mdui.snackbar({message: '开始下载',timeout: 500,position: 'top'});
-    for(i in list){
+    for(i in list)if(issl[i]){
         download_(i);
         while(is_downloading)await sleep(500);
     }
@@ -169,7 +170,7 @@ function expt(typ){
     mdui.snackbar({message: '加载中',timeout: 500,position: 'top'});
     get();
     res="";
-    for(i in list)expt_(i,typ);
+    for(i in list)if(issl[i])expt_(i,typ);
     console.clear(),console.log(res);
     mdui.snackbar({message: '加载完毕',timeout: 500,position: 'top'});
     mdui.snackbar({
@@ -181,17 +182,29 @@ function genlist(){
     mdui.snackbar({message: '加载中',timeout: 500,position: 'top'});
     $("#songlist").html("");
     get();
-    for(i in list)$("#songlist").append(
+    for(i in list){
+        $("#songlist").append(
 "<li class='mdui-list-item'>\
     <div class='mdui-list-item-avatar'><img src='"+list[i].pic+"'></div>\
     <a onclick=\"play("+i+")\" class='mdui-list-item-content'>\
         <div class='mdui-list-item-title'>"+list[i].title+"</div>\
         <div class='mdui-list-item-text'>"+list[i].author+"</div>\
     </a>\
-    <a href=\"javascript:download_("+i+")\">\
-        \<i class='mdui-list-item-icon mdui-icon material-icons'>file_download</i>\
-    </a>\
+    <label class='mdui-checkbox'>\
+        <input type='checkbox' onclick=\"issl["+i+"]^=1\">\
+        <i class='mdui-checkbox-icon'></i>\
+    </lable>\
 </li>");
+        issl[i]=0;
+    }
     songlist=lrcli=$("#songlist>li");
     mdui.snackbar({message: '加载完毕',timeout: 500,position: 'top'});
+}
+function selectrev(){
+    for(var i=0;i<songlist.length;++i){
+        var x=songlist[i].children[2].children[0];
+        if(issl[i])x.checked=false;
+        else x.checked=1;
+        issl[i]^=1;
+    }
 }
