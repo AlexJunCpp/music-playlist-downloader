@@ -32,3 +32,4 @@ li.on{
     font-size: 25px;
 }
 ul{transition-duration: 600ms;}
+a:hover{cursor: pointer;color:#f7a4b9;}
