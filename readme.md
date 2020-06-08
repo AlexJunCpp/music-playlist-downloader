@@ -1,14 +1,10 @@
-在线的歌单批量下载器
+在线的歌单批量下载器,支持单首下载,可以试听和预览歌词
 
 [demo](https://zcmimi.github.io/music-playlist-downloader)
 
-![demo1.png](demo1.png)
-
-![demo2.png](demo2.png)
-
 请使用`Chrome`或`Firefox`
 
-(不支持某些付费曲目)
+(能听就能下载,不支持付费试听曲目)
 
 使用到的其他项目:
 
