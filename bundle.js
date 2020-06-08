@@ -3,7 +3,7 @@ var is_downloading=0,
     now=0,
     download_lrc=1,
     res="",
-    audio=$('#player')[0],
+    audio=document.getElementById('player'),
     lrcTime=[],
     lrc,
     lrcli,
@@ -13,14 +13,14 @@ var is_downloading=0,
     songlist,
     screencenter=window.innerHeight/2,
     issl=[];
-$('#download_lrc').click(function(){download_lrc^=1;});
 function getlrc(id){
     var t=$.ajax({
         url: list[id].lrc,
         async: false
     }).responseText;
     lrcTime=[];
-    lrcul=$("#lrclist")[0];lrcul.innerHTML="";
+    lrcul=document.getElementById('lrclist');
+    lrcul.innerHTML="";
     lrcul.style.transform="translateY("+screencenter+"px)";
     currentLine=0;
     if(t==''){
@@ -29,28 +29,28 @@ function getlrc(id){
     }
     t=t.split('\n');
     for(var i=0;i<t.length;++i){
-        lrcTime[i]=parseFloat(t[i].substr(1,3))*60+parseFloat(t[i].substring(4,10));//00:00.000转化为00.000格式
+        lrcTime[i]=parseFloat(t[i].substr(1,3))*60+parseFloat(t[i].substring(4,10));
         lrcul.innerHTML+="<li class='mdui-list-item'>"+t[i].substr(11,t[i].length)+"</li>";
     }
 	lrcTime[lrcTime.length]=lrcTime[lrcTime.length-1]+3;
-    lrcli=$("#lrclist>li");    
+    lrcli=document.querySelectorAll('#lrclist li');
 }
 audio.ontimeupdate=function(){
 	currentTime=audio.currentTime;
 	for(var j=currentLine,len=lrcTime.length;j<len;j++){
-		if (currentTime<lrcTime[j+1] && currentTime>lrcTime[j]){
+		if (currentTime<lrcTime[j+1]&&currentTime>lrcTime[j]){
 			currentLine=j;
 			lrc_ppxx=screencenter-(currentLine*48);
 			lrcul.style.transform="translateY("+lrc_ppxx+"px)";
-			lrcli.get(currentLine-1).className="mdui-list-item";
-			lrcli.get(currentLine).className="mdui-list-item on";
+            try{lrcli[currentLine-1].classList.remove('on')}catch{}
+			lrcli[currentLine].classList.add('on');
 			break;
 		}
 	}
 };
 audio.onseeked=function(){
     currentTime=audio.currentTime;
-    lrcli.get(currentLine).className="";
+    try{lrcli[currentLine].classList.remove('on');}catch{}
     for(k=0,len=lrcTime.length;k<len;++k){
         if(currentTime<lrcTime[k+1]&&currentTime<lrcTime[k]){
             currentLine=k;
@@ -65,7 +65,7 @@ audio.onerror=function(){
 function play(i){
     songlist[now].children[1].style.fontWeight='normal';
     now=i;
-    $("#player").attr("src",list[i].url);
+    audio.setAttribute('src',list[i].url);
     getlrc(i);
     songlist[i].scrollIntoView(false);
     songlist[i].children[1].style.fontWeight='bold';
@@ -82,74 +82,75 @@ function rnd(){play(Math.floor((Math.random()*(list.length-1))));}
 document.getElementById("player").addEventListener('ended',function(){nxt();});
 
 function get(){
-    var id=$('#playlistid').val(),
-        typ=$('#playlisttyp').val();
-    list=JSON.parse(
-        $.ajax({
-            url: "https://api.i-meto.com/meting/api?server="+typ+"&type=playlist&id="+id,
-            async: false
-        }).responseText
-    );
+    var id=document.getElementById('playlistid').value,
+        typ=document.getElementById('playlisttyp').value,
+        xhr=new XMLHttpRequest();
+    xhr.open('GET',"https://api.i-meto.com/meting/api?server="+typ+"&type=playlist&id="+id,false);
+    xhr.send();
+    list=JSON.parse(xhr.responseText);
 }
 
 function sleep(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
+function saveas(res,filename){
+    var blob=res,a=document.createElement('a');
+    a.download=filename;
+    a.href=window.URL.createObjectURL(blob);
+    a.click();
+}
 function download_(id){
-    var name=list[id].author+"-"+list[id].title;
-    if($("#download_name").val()==1)name=list[id].title+"-"+list[id].author;
-    else if($("#download_name").val()==2)name=list[id].title;
+    while(!issl[id]&&id<list.length)++id;
+    if(id>=list.length)return;
+    songlist[id].scrollIntoView(false);
+    
+    var name=list[id].author+"-"+list[id].title,
+        val=document.getElementById('download_name').value;
+    if(val==1)name=list[id].title+"-"+list[id].author;
+    else if(val==2)name=list[id].title;
 
     var tmp=name,r="/\\*?<>|?:";name='';
     for(var i=0;i<tmp.length;++i)
         if(r.indexOf(tmp[i])!=-1)name+='_';
         else name+=tmp[i];
+    console.log(id);
+    var xhr=new XMLHttpRequest();
+    xhr.onprogress=function(e){
+        if(e.lengthComputable)
+            document.getElementById("progressbar_").style.width=Math.round(100*e.loaded/e.total)+'%';
+    };
+    xhr.responseType="blob";
+    xhr.open("GET",list[id].url,true);
+    xhr.onreadystatechange=function(e){
+        if(this.readyState==4){
+            if(this.status==200)
+                saveas(this.response,name+'.mp3');
+            download_(id+1);
+        }
+    }
+    xhr.send();
+
+    if(!download_lrc)return;
 
     var xhr=new XMLHttpRequest();
-    xhr.open('GET',list[id].url,true);
     xhr.responseType="blob";
-    xhr.onload=async function(){
-        is_downloading=1;
-        if(this.status===200){
-            var blob=this.response;
-            var a=document.createElement('a');
-            a.download=name+".mp3";
-            a.href=window.URL.createObjectURL(blob);
-            a.click();
-            await sleep(2000);
-            is_downloading=0;
-        }
-    };
-    xhr.send();
-    if(!download_lrc)return;
-    var xhr=new XMLHttpRequest();
-    xhr.open('GET',list[id].lrc,true);
-    xhr.responseType="blob";
-    xhr.onload=async function(){
-        is_downloading=1;
-        if(this.status===200){
-            var blob=this.response;
-            var a=document.createElement('a');
-            a.download=name+".lrc";
-            a.href=window.URL.createObjectURL(blob);
-            a.click();
-            await sleep(1000);
-            is_downloading=0;
-        }
-    };
+    xhr.open("GET",list[id].lrc,true);
+    xhr.onreadystatechange=function(e){
+        if(this.readyState==4&&this.status==200)
+            saveas(this.response,name+'.lrc');
+    }
     xhr.send();
 }
-async function download(){
-    mdui.snackbar({message: '加载中',timeout: 500,position: 'top'});
-    get();
+function download(){
     mdui.snackbar({message: '开始下载',timeout: 500,position: 'top'});
-    for(i in list)if(issl[i]){
-        download_(i);
-        while(is_downloading)await sleep(500);
-    }
+    document.getElementById('progressbar').hidden=0;
+    download_(0);
+    document.getElementById('progressbar').hidden=1;
+    mdui.snackbar({message: '下载完成',timeout: 500,position: 'top'});
 }
 function expt_(id,typ){
-    var name=list[id].author+"-"+list[id].title;
-    if($("#download_name").val()==1)name=list[id].title+"-"+list[id].author;
-    else if($("#download_name").val()==2)name=list[id].title;
+    var name=list[id].author+"-"+list[id].title,
+        val=document.getElementById('download_name').value;
+    if(val==1)name=list[id].title+"-"+list[id].author;
+    else if(val==2)name=list[id].title;
     
     var tmp=name,r="/\\*?<>|?:";name='';
     for(var i=0;i<tmp.length;++i)
@@ -168,7 +169,6 @@ function expt_(id,typ){
 }
 function expt(typ){
     mdui.snackbar({message: '加载中',timeout: 500,position: 'top'});
-    get();
     res="";
     for(i in list)if(issl[i])expt_(i,typ);
     console.clear(),console.log(res);
@@ -180,10 +180,10 @@ function expt(typ){
 }
 function genlist(){
     mdui.snackbar({message: '加载中',timeout: 500,position: 'top'});
-    $("#songlist").html("");
     get();
+    var tmp=''
     for(i in list){
-        $("#songlist").append(
+        tmp+=
 "<li class='mdui-list-item'>\
     <div class='mdui-list-item-avatar'><img src='"+list[i].pic+"'></div>\
     <a onclick=\"play("+i+")\" class='mdui-list-item-content'>\
@@ -194,10 +194,12 @@ function genlist(){
         <input type='checkbox' onclick=\"issl["+i+"]^=1\">\
         <i class='mdui-checkbox-icon'></i>\
     </lable>\
-</li>");
+</li>";
         issl[i]=0;
     }
-    songlist=lrcli=$("#songlist>li");
+    songlist=document.getElementById('songlist');
+    songlist.innerHTML=tmp;
+    songlist=songlist.children;
     mdui.snackbar({message: '加载完毕',timeout: 500,position: 'top'});
 }
 function selectrev(){

@@ -31,7 +31,7 @@
                 <option value=2>歌曲名</option>
             </select>
             <label class="mdui-checkbox">
-                <input id="download_lrc" type="checkbox" checked>
+                <input id="download_lrc" type="checkbox" checked onclick="download_lrc^=1;">
                 <i class="mdui-checkbox-icon"></i>下载歌词
             </label>
             <div class='mdui-toolbar-spacer'></div>
@@ -46,7 +46,7 @@
                     <a href="javascript:expt('certutil');">使用certutil</a>
                 </li>
             </ul>
-            <a onclick="download()" title="占用资源,有可能会卡死">
+            <a href="javascript:download()" title="占用资源,有可能会卡死">
                 <i class="mdui-icon material-icons">file_download</i>
             </a>
             <a onclick="selectrev()" title='反选'>
@@ -58,6 +58,9 @@
             <a onclick="rnd()"><i class="mdui-icon material-icons">youtube_searched_for</i></a>
             <a onclick="nxt()"><i class='mdui-icon material-icons'>skip_next</i></a>
             <audio id="player" src="" controls="controls" autoplay="autoplay"></audio>
+        </div>
+        <div class="mdui-progress" id='progressbar' hidden>
+            <div class="mdui-progress-determinate" id='progressbar_' style="width: 0%;"></div>
         </div>
     </div>
     <ul id="songlist" class="mdui-list">
