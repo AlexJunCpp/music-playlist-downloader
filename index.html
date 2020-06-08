@@ -5,9 +5,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/zcmimi/cdn@master/assets/mdui-all/css/mdui.min.css">
     <script src="https://cdn.jsdelivr.net/gh/zcmimi/cdn@master/assets/mdui-all/js/mdui.min.js"></script>
     <script src='https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js'></script>
+    <link rel="stylesheet" href="css.css">
 </head>
 <body class="mdui-theme-accent-blue mdui-list mdui-appbar-with-toolbar padding-top">
-    <div class='mdui-appbar mdui-shadow-2 mdui-appbar-fixed' style='max-width: 500px'>
+<div id="content-left">
+    <div id='top_bar' class='mdui-appbar mdui-shadow-2 mdui-appbar-fixed'>
         <div class='mdui-toolbar mdui-color-white'>
             <select id="playlisttyp" class="mdui-select">
                 <option value="netease">网易云音乐</option>
@@ -55,8 +57,12 @@
             <audio id="player" src="" controls="controls" autoplay="autoplay"></audio>
         </div>
     </div>
-    <ul id="songlist" class="mdui-list" style="padding-top: 192px;">
+    <ul id="songlist" class="mdui-list">
     </ul>
+</div>
+    <div id='content-right'>
+    <ul id="lrclist" class='mdui-list'></ul>
+    </div>
     <script src='bundle.js'></script>
 </body>
 
