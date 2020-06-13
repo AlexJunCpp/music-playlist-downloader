@@ -1,9 +1,9 @@
-var is_downloading=0,
+var is_downloading,
     list,
-    now=0,
-    download_lrc=1,
-    res="",
-    audio=document.getElementById('player'),
+    now,
+    download_lrc,
+    res,
+    audio,
     lrcTime=[],
     lrc,
     lrcli,
@@ -13,6 +13,42 @@ var is_downloading=0,
     songlist,
     screencenter=window.innerHeight/2,
     issl=[];
+
+window.onload=function(){
+    is_downloading=0;
+    now=0;
+    download_lrc=1;
+    audio=document.getElementById('player');
+    audio.addEventListener('ended',function(){nxt();});
+    audio.ontimeupdate=function(){
+        currentTime=audio.currentTime;
+        for(var j=currentLine,len=lrcTime.length;j<len;j++){
+            if (currentTime<lrcTime[j+1]&&currentTime>lrcTime[j]){
+                currentLine=j;
+                lrc_ppxx=screencenter-(currentLine*48);
+                lrcul.style.transform="translateY("+lrc_ppxx+"px)";
+                try{lrcli[currentLine-1].classList.remove('on')}catch{}
+                lrcli[currentLine].classList.add('on');
+                break;
+            }
+        }
+    };
+    audio.onseeked=function(){
+        currentTime=audio.currentTime;
+        try{lrcli[currentLine].classList.remove('on');}catch{}
+        for(k=0,len=lrcTime.length;k<len;++k){
+            if(currentTime<lrcTime[k+1]&&currentTime<lrcTime[k]){
+                currentLine=k;
+                break;
+            }
+        }
+    };
+    audio.onerror=function(){
+        mdui.snackbar({message: '播放失败,自动下一首',timeout: 500,position: 'top'});
+        nxt();
+    };
+}
+
 function getlrc(id){
     var xhr=new XMLHttpRequest();
     xhr.open('GET',list[id].lrc,false);
@@ -24,7 +60,10 @@ function getlrc(id){
     lrcul.style.transform="translateY("+screencenter+"px)";
     currentLine=0;
     if(t==''){
-        lrcul.innerHTML='<center>暂无歌词<center>';
+        var x=document.createElement("li");
+        x.classList.add('mdui-list-item');
+        x.innerText="暂无歌词";
+        lrcul.appendChild(x);
         return;
     }
     t=t.split('\n');
@@ -38,33 +77,6 @@ function getlrc(id){
 	lrcTime[lrcTime.length]=lrcTime[lrcTime.length-1]+3;
     lrcli=document.querySelectorAll('#lrclist li');
 }
-audio.ontimeupdate=function(){
-	currentTime=audio.currentTime;
-	for(var j=currentLine,len=lrcTime.length;j<len;j++){
-		if (currentTime<lrcTime[j+1]&&currentTime>lrcTime[j]){
-			currentLine=j;
-			lrc_ppxx=screencenter-(currentLine*48);
-			lrcul.style.transform="translateY("+lrc_ppxx+"px)";
-            try{lrcli[currentLine-1].classList.remove('on')}catch{}
-			lrcli[currentLine].classList.add('on');
-			break;
-		}
-	}
-};
-audio.onseeked=function(){
-    currentTime=audio.currentTime;
-    try{lrcli[currentLine].classList.remove('on');}catch{}
-    for(k=0,len=lrcTime.length;k<len;++k){
-        if(currentTime<lrcTime[k+1]&&currentTime<lrcTime[k]){
-            currentLine=k;
-            break;
-        }
-    }
-};
-audio.onerror=function(){
-    mdui.snackbar({message: '播放失败,自动下一首',timeout: 500,position: 'top'});
-    nxt();
-};
 function play(i){
     songlist[now].children[1].style.fontWeight='normal';
     now=i;
@@ -82,7 +94,6 @@ function nxt(){
     else play(0)
 }
 function rnd(){play(Math.floor((Math.random()*(list.length-1))));}
-document.getElementById("player").addEventListener('ended',function(){nxt();});
 
 function get(){
     var id=document.getElementById('playlistid').value,
