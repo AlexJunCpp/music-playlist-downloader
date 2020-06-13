@@ -30,7 +30,10 @@ function getlrc(id){
     t=t.split('\n');
     for(var i=0;i<t.length;++i){
         lrcTime[i]=parseFloat(t[i].substr(1,3))*60+parseFloat(t[i].substring(4,10));
-        lrcul.innerHTML+="<li class='mdui-list-item'>"+t[i].substr(11,t[i].length)+"</li>";
+        var x=document.createElement("li");
+        x.classList.add('mdui-list-item');
+        x.innerText=t[i].substr(11,t[i].length);
+        lrcul.appendChild(x);
     }
 	lrcTime[lrcTime.length]=lrcTime[lrcTime.length-1]+3;
     lrcli=document.querySelectorAll('#lrclist li');
@@ -181,24 +184,39 @@ function expt(typ){
 function genlist(){
     mdui.snackbar({message: '加载中',timeout: 500,position: 'top'});
     get();
-    var tmp=''
-    for(i in list){
-        tmp+=
-"<li class='mdui-list-item'>\
-    <div class='mdui-list-item-avatar'><img src='"+list[i].pic+"'></div>\
-    <a onclick=\"play("+i+")\" class='mdui-list-item-content'>\
-        <div class='mdui-list-item-title'>"+list[i].title+"</div>\
-        <div class='mdui-list-item-text'>"+list[i].author+"</div>\
-    </a>\
-    <label class='mdui-checkbox'>\
-        <input type='checkbox' onclick=\"issl["+i+"]^=1\">\
-        <i class='mdui-checkbox-icon'></i>\
-    </lable>\
-</li>";
-        issl[i]=0;
-    }
     songlist=document.getElementById('songlist');
-    songlist.innerHTML=tmp;
+    for(i in list){
+        var li=document.createElement('li'),
+            avatar=document.createElement('div'),
+            pic=document.createElement('img'),
+            a=document.createElement('a'),
+            title=document.createElement('div'),
+            author=document.createElement('div'),
+            label=document.createElement('label'),
+            chkbox=document.createElement('input'),
+            chkicon=document.createElement('i');
+
+        li.classList.add('mdui-list-item');
+        avatar.classList.add('mdui-list-item-avatar');
+        pic.src=list[i].pic;
+        pic.onerror=function(){var t=this.src;this.src='';this.src=t;};
+        a.setAttribute('onclick','play('+i+')');
+        a.classList.add('mdui-list-item-content');
+        title.innerText=list[i].title,title.classList.add('mdui-list-item-title');
+        author.innerText=list[i].author,author.classList.add('mdui-list-item-text');
+        label.classList.add('mdui-checkbox');
+        chkbox.onclick=function(){issl[i]^=1;};
+        chkbox.setAttribute('type','checkbox');
+        chkicon.classList.add('mdui-checkbox-icon');
+
+        avatar.appendChild(pic);
+        a.appendChild(title),a.appendChild(author);
+        label.appendChild(chkbox),label.appendChild(chkicon);
+        li.appendChild(avatar),li.appendChild(a),li.appendChild(label);
+        issl[i]=0;
+
+        songlist.appendChild(li);
+    }
     songlist=songlist.children;
     mdui.snackbar({message: '加载完毕',timeout: 500,position: 'top'});
 }
