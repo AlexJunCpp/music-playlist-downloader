@@ -104,6 +104,7 @@ function download_(id){
     while(!issl[id]&&id<list.length)++id;
     if(id>=list.length)return;
     songlist[id].scrollIntoView(false);
+    songlist[id].style.background='#ffeaf0';
     
     var name=list[id].author+"-"+list[id].title,
         val=document.getElementById('download_name').value;
@@ -114,7 +115,8 @@ function download_(id){
     for(var i=0;i<tmp.length;++i)
         if(r.indexOf(tmp[i])!=-1)name+='_';
         else name+=tmp[i];
-    console.log(id);
+    console.log((id+1)+'/'+list.length);
+
     var xhr=new XMLHttpRequest();
     xhr.onprogress=function(e){
         if(e.lengthComputable)
@@ -137,16 +139,16 @@ function download_(id){
     xhr.responseType="blob";
     xhr.open("GET",list[id].lrc,true);
     xhr.onreadystatechange=function(e){
-        if(this.readyState==4&&this.status==200)
-            saveas(this.response,name+'.lrc');
+        if(this.readyState==4){
+            if(this.status==200)
+                saveas(this.response,name+'.lrc')
+        }
     }
     xhr.send();
 }
 function download(){
     mdui.snackbar({message: '开始下载',timeout: 500,position: 'top'});
-    document.getElementById('progressbar').hidden=0;
     download_(0);
-    document.getElementById('progressbar').hidden=1;
     mdui.snackbar({message: '下载完成',timeout: 500,position: 'top'});
 }
 function expt_(id,typ){
@@ -197,15 +199,16 @@ function genlist(){
             chkicon=document.createElement('i');
 
         li.classList.add('mdui-list-item');
+        li.setAttribute('data-id',i);
         avatar.classList.add('mdui-list-item-avatar');
         pic.src=list[i].pic;
         pic.onerror=function(){var t=this.src;this.src='';this.src=t;};
-        a.setAttribute('onclick','play('+i+')');
+        a.onclick=function(){play(this.parentElement.getAttribute('data-id'));};
         a.classList.add('mdui-list-item-content');
         title.innerText=list[i].title,title.classList.add('mdui-list-item-title');
         author.innerText=list[i].author,author.classList.add('mdui-list-item-text');
         label.classList.add('mdui-checkbox');
-        chkbox.onclick=function(){issl[i]^=1;};
+        chkbox.onclick=function(){issl[this.parentElement.parentElement.getAttribute('data-id')]^=1;};
         chkbox.setAttribute('type','checkbox');
         chkicon.classList.add('mdui-checkbox-icon');
 

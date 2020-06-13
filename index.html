@@ -1,7 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>歌单下载器(by zcmimi)</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="keywords" content="在线歌单下载器">
+    <meta name='description' itemprop="description" content="在线歌单下载器,支持网易云、QQ、酷狗、虾米、百度">
+    <title>在线歌单下载器</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/zdhxiong/mdui@0.4.3/dist/css/mdui.min.css" type="text/css">
     <script src="https://cdn.jsdelivr.net/gh/zdhxiong/mdui@0.4.3/dist/js/mdui.min.js"></script>
     <link rel="stylesheet" href="css.css" type="text/css">
@@ -45,20 +49,20 @@
                     <a href="javascript:expt('certutil');">使用certutil</a>
                 </li>
             </ul>
-            <a href="javascript:download()" title="占用资源,有可能会卡死">
+            <button onclick="download()" title="占用资源,有可能会卡死" class="mdui-btn mdui-btn-icon">
                 <i class="mdui-icon material-icons">file_download</i>
-            </a>
-            <a onclick="selectrev()" title='反选'>
+            </button>
+            <button onclick="selectrev()" title='反选' class="mdui-btn mdui-btn-icon">
                 <i class="mdui-icon material-icons">exposure</i>
             </a>
         </div>
         <div class='mdui-toolbar mdui-color-white'>
-            <a onclick="pre()"><i class='mdui-icon material-icons'>skip_previous</i></a>
-            <a onclick="rnd()"><i class="mdui-icon material-icons">youtube_searched_for</i></a>
-            <a onclick="nxt()"><i class='mdui-icon material-icons'>skip_next</i></a>
+            <button onclick="pre()" class="mdui-btn mdui-btn-icon"><i class='mdui-icon material-icons'>skip_previous</i></button>
+            <button onclick="rnd()" class="mdui-btn mdui-btn-icon"><i class="mdui-icon material-icons">youtube_searched_for</i></button>
+            <button onclick="nxt()" class="mdui-btn mdui-btn-icon"><i class='mdui-icon material-icons'>skip_next</i></button>
             <audio id="player" src="" controls="controls" autoplay="autoplay"></audio>
         </div>
-        <div class="mdui-progress" id='progressbar' hidden>
+        <div class="mdui-progress" id='progressbar'>
             <div class="mdui-progress-determinate" id='progressbar_' style="width: 0%;"></div>
         </div>
     </div>
