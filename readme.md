@@ -15,15 +15,19 @@
 特点:
 
 1. 简洁美观
-
 2. 支持在线下载与导出下载脚本
-
 3. 支持试听与查看歌词，歌词随时间自动滚动
-
 4. 纯javascript编写
+
+Todolist
+
+-  [ ] 适配移动端
+-  [x] 性能优化
+-  [x] 同步播放歌词
+-  [ ] 增加其他api
 
 使用到的其他项目:
 
-1. [MetingJS](https://github.com/metowolf/MetingJS) 默认使用了metting作者的api,在此表示非常感谢
+1. [MetingJS](https://github.com/metowolf/MetingJS) 默认使用了meting作者的api,在此表示非常感谢
 
 2. [mdui](https://github.com/zdhxiong/mdui)
