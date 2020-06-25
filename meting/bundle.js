@@ -1,25 +1,22 @@
-var is_downloading,
-    list,
-    now,
-    download_lrc,
-    res,
-    audio,
-    lrcTime=[],
-    lrc,
+var list;
+var expres="";
+var lrcTime=[],
     lrcli,
     currentLine,
     currentTime,
     lrc_ppxx,
     songlist,
-    screencenter=window.innerHeight/2,
-    issl=[];
-
+    screencenter=window.innerHeight/2;
+var download_lrc,issl=[];
+var audio,now,order_his=[],order_typ;
 window.onload=function(){
-    is_downloading=0;
     now=0;
     download_lrc=1;
     audio=document.getElementById('player');
-    audio.addEventListener('ended',function(){nxt();});
+    audio.addEventListener('ended',function(){
+        if(order_typ)rnd();
+        else nxt();
+    });
     audio.ontimeupdate=function(){
         currentTime=audio.currentTime;
         for(var j=currentLine,len=lrcTime.length;j<len;j++){
@@ -79,21 +76,31 @@ function getlrc(id){
 }
 function play(i){
     songlist[now].children[1].style.fontWeight='normal';
-    now=i;
+    now=Number(i);
     audio.setAttribute('src',list[i].url);
     getlrc(i);
     songlist[i].scrollIntoView(false);
     songlist[i].children[1].style.fontWeight='bold';
+    order_his.push(i);
 }
 function pre(){
-    if(now>0)play(now-1);
-    else play(list.length-1);
+    if(order_his.length>1)
+        order_his.pop(),play(order_his.pop());
 }
 function nxt(){
-    if(now<list.length-1)play(now+1);
-    else play(0)
+    if(order_typ)rnd();
+    else{
+        if(now<list.length-1)play(now+1);
+        else play(0);
+    }
 }
 function rnd(){play(Math.floor((Math.random()*(list.length-1))));}
+function order_toggle(){
+    var x=document.getElementById('order_toggle');
+    if(order_typ)x.style.color='';
+    else x.style.color='#f7a4b9';
+    order_typ^=1;
+}
 
 function get(){
     var id=document.getElementById('playlistid').value,
@@ -104,29 +111,28 @@ function get(){
     list=JSON.parse(xhr.responseText);
 }
 
-function sleep(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
 function saveas(res,filename){
     var blob=res,a=document.createElement('a');
     a.download=filename;
     a.href=window.URL.createObjectURL(blob);
     a.click();
 }
-function download_(id){
-    while(!issl[id]&&id<list.length)++id;
-    if(id>=list.length)return;
-    songlist[id].scrollIntoView(false);
-    songlist[id].style.background='#ffeaf0';
+function download_(i){
+    while(!issl[i]&&i<list.length)++i;
+    if(i>=list.length)return;
+    songlist[i].scrollIntoView(false);
+    songlist[i].style.background='#ffeaf0';
     
-    var name=list[id].author+"-"+list[id].title,
+    var name=list[i].author+"-"+list[i].title,
         val=document.getElementById('download_name').value;
-    if(val==1)name=list[id].title+"-"+list[id].author;
-    else if(val==2)name=list[id].title;
+    if(val==1)name=list[i].title+"-"+list[i].author;
+    else if(val==2)name=list[i].title;
 
     var tmp=name,r="/\\*?<>|?:";name='';
-    for(var i=0;i<tmp.length;++i)
-        if(r.indexOf(tmp[i])!=-1)name+='_';
-        else name+=tmp[i];
-    console.log((id+1)+'/'+list.length);
+    for(var j=0;j<tmp.length;++j)
+        if(r.indexOf(tmp[j])!=-1)name+='_';
+        else name+=tmp[j];
+    console.log((i+1)+'/'+list.length);
 
     var xhr=new XMLHttpRequest();
     xhr.onprogress=function(e){
@@ -134,12 +140,12 @@ function download_(id){
             document.getElementById("progressbar_").style.width=Math.round(100*e.loaded/e.total)+'%';
     };
     xhr.responseType="blob";
-    xhr.open("GET",list[id].url,true);
+    xhr.open("GET",list[i].url,true);
     xhr.onreadystatechange=function(e){
         if(this.readyState==4){
             if(this.status==200)
                 saveas(this.response,name+'.mp3');
-            download_(id+1);
+            download_(i+1);
         }
     }
     xhr.send();
@@ -148,7 +154,7 @@ function download_(id){
 
     var xhr=new XMLHttpRequest();
     xhr.responseType="blob";
-    xhr.open("GET",list[id].lrc,true);
+    xhr.open("GET",list[i].lrc,true);
     xhr.onreadystatechange=function(e){
         if(this.readyState==4){
             if(this.status==200)
@@ -162,32 +168,32 @@ function download(){
     download_(0);
     mdui.snackbar({message: '下载完成',timeout: 500,position: 'top'});
 }
-function expt_(id,typ){
-    var name=list[id].author+"-"+list[id].title,
+function expt_(i,typ){
+    var name=list[i].author+"-"+list[i].title,
         val=document.getElementById('download_name').value;
-    if(val==1)name=list[id].title+"-"+list[id].author;
-    else if(val==2)name=list[id].title;
+    if(val==1)name=list[i].title+"-"+list[i].author;
+    else if(val==2)name=list[i].title;
     
     var tmp=name,r="/\\*?<>|?:";name='';
-    for(var i=0;i<tmp.length;++i)
-        if(r.indexOf(tmp[i])!=-1)name+='_';
-        else name+=tmp[i];
+    for(var j=0;j<tmp.length;++j)
+        if(r.indexOf(tmp[j])!=-1)name+='_';
+        else name+=tmp[j];
 
     if(typ=='wget')
-        res+="wget \""+list[i].url+"\" -O \""+name+".mp3\"\n";
+        expres+="wget \""+list[i].url+"\" -O \""+name+".mp3\"\n";
     else if(typ=='certutil')
-        res+="certutil -urlcache -split -f \""+list[id].url+"\" \""+name+".mp3\"\n";
+        expres+="certutil -urlcache -split -f \""+list[i].url+"\" \""+name+".mp3\"\n";
     if(!download_lrc)return;
     if(typ=='wget')
-        res+="wget \""+list[i].lrc+"\" -O \""+name+".lrc\"\n";
+        expres+="wget \""+list[i].lrc+"\" -O \""+name+".lrc\"\n";
     else if(typ=='certutil')
-        res+="certutil -urlcache -split -f \""+list[id].lrc+"\" \""+name+".lrc\"\n";
+        expres+="certutil -urlcache -split -f \""+list[i].lrc+"\" \""+name+".lrc\"\n";
 }
 function expt(typ){
     mdui.snackbar({message: '加载中',timeout: 500,position: 'top'});
-    res="";
+    expres="";
     for(i in list)if(issl[i])expt_(i,typ);
-    console.clear(),console.log(res);
+    console.clear(),console.log(expres);
     mdui.snackbar({message: '加载完毕',timeout: 500,position: 'top'});
     mdui.snackbar({
         message:"请按F12打开控制台(Console)复制,并在终端运行",

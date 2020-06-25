@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,70 +9,60 @@
     <title>在线歌单下载器</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/zdhxiong/mdui@0.4.3/dist/css/mdui.min.css" type="text/css">
     <script async src="https://cdn.jsdelivr.net/gh/zdhxiong/mdui@0.4.3/dist/js/mdui.min.js"></script>
-    <link rel="stylesheet" href="css.css" type="text/css">
-    <script async src='bundle.js'></script>
 </head>
-<body class="mdui-theme-accent-blue mdui-list mdui-appbar-with-toolbar padding-top">
-    <div id="content-left">
-       <div id='top_bar' class='mdui-appbar mdui-shadow-2 mdui-appbar-fixed'>
-            <div class='mdui-toolbar mdui-color-white'>
-               <select id="playlisttyp" class="mdui-select">
-                    <option value="netease">网易云音乐</option>
-                    <option value="tencent">QQ音乐</option>
-                    <option value="xiami">虾米音乐</option>
-                    <option value="kugou">酷狗音乐</option>
-                    <option value="baidu">百度音乐</option>
-                </select>
-                <div class='mdui-textfield'>
-                    <input id='playlistid' class='mdui-textfield-input' placeholder='请输入歌单id'>
-                </div>
-                <button class="mdui-btn mdui-color-blue mdui-text-color-white mdui-btn-raised mdui-ripple" onclick="genlist()">加载</button>
+<style>
+.mdui-card{margin: 20px;}
+a{color:#0099ff;text-decoration: none;}
+</style>
+<body>
+    <div class="mdui-container">
+        <div class="mdui-card">
+            <div class="mdui-card-primary">
+                <div class="mdui-card-primary-title">介绍</div>
+                <div class="mdui-card-primary-subtitle">功能与特点</div>
             </div>
-            <div class='mdui-toolbar mdui-color-white'>
-                <select id="download_name" class="mdui-select">
-                    <option value=1>歌曲名-歌手</option>
-                    <option value=0>歌手-歌曲名</option>
-                    <option value=2>歌曲名</option>
-                </select>
-                <label class="mdui-checkbox">
-                    <input id="download_lrc" type="checkbox" checked onclick="download_lrc^=1;">
-                    <i class="mdui-checkbox-icon"></i>下载歌词
-                </label>
-                <a mdui-menu="{target: '#export_menu'}" title="导出下载脚本,推荐">
-                    <i class="mdui-icon material-icons">subdirectory_arrow_right</i>
-                </a>
-                <ul class="mdui-menu" id="export_menu">
-                    <li class="mdui-menu-item">
-                        <a href="javascript:expt('wget');">使用wget</a>
-                    </li>
-                    <li class="mdui-menu-item">
-                        <a href="javascript:expt('certutil');">使用certutil</a>
-                    </li>
-                </ul>
-                <button onclick="download()" title="占用资源,有可能会卡死" class="mdui-btn mdui-btn-icon">
-                    <i class="mdui-icon material-icons">file_download</i>
-                </button>
-                <button onclick="selectrev()" title='反选' class="mdui-btn mdui-btn-icon">
-                    <i class="mdui-icon material-icons">exposure</i>
-                </a>
+            <div class="mdui-card-content mdui-typo">
+                <p>支持网易云音乐,QQ音乐,酷狗音乐,虾米音乐,百度音乐</p>
+                <p>请使用新版本的 <code>Chrome</code>或<code>Firefox</code></p>
+                <p>可以在线使用,也可以下载后在本地使用</p>
+                <p>特点:</p>
+                <ol>
+                    <li>简洁美观</li>
+                    <li>支持在线下载与导出下载脚本</li>
+                    <li>支持试听与查看歌词，歌词随时间自动滚动</li>
+                    <li>纯javascript编写</li>
+                </ol>
+                <a href="https://github.com/zcmimi/music-playlist-downloader"
+                    mdui-tooltip="{content: '好用就点个star吧'}">在github上查看</a>
             </div>
-           <div class='mdui-toolbar mdui-color-white'>
-               <button onclick="pre()" class="mdui-btn mdui-btn-icon"><i class='mdui-icon material-icons'>skip_previous</i></button>
-               <button onclick="rnd()" class="mdui-btn mdui-btn-icon"><i class="mdui-icon material-icons">youtube_searched_for</i></button>
-               <button onclick="nxt()" class="mdui-btn mdui-btn-icon"><i class='mdui-icon material-icons'>skip_next</i></button>
-               <audio id="player" src="" controls="controls" autoplay="autoplay"></audio>
-           </div>
-           <div class="mdui-progress" id='progressbar'>
-               <div class="mdui-progress-determinate" id='progressbar_' style="width: 0%;"></div>
-           </div>
-       </div>
-       <ul id="songlist" class="mdui-list">
-       </ul>
-    </div>
-    <div id='content-right'>
-        <ul id="lrclist" class='mdui-list'></ul>
+        </div>
+
+
+        <div class="mdui-card">
+            <div class="mdui-card-primary">
+                <a href='meting' class="mdui-card-primary-title">meting</a>
+                <div class="mdui-card-primary-subtitle">使用meting,官方提供api</div>
+            </div>
+            <div class="mdui-card-content mdui-typo">
+                <p>使用<a href="https://github.com/metowolf/Meting">meting</a>,支持网易云、QQ、酷狗、虾米、百度音乐等</p>
+                <p>支持下载能试听的歌曲(能听就可以下载,包含vip下载但可以试听,但不包含vip)</p>
+                <a href="meting">进入</a>
+            </div>
+        </div>
+
+        <div class="mdui-card">
+            <div class="mdui-card-primary">
+                <a href='api' class="mdui-card-primary-title">NeteaseCloudMusicApi</a>
+                <div class="mdui-card-primary-subtitle">使用NeteaseCloudMusicApi,暂无官方提供api</div>
+            </div>
+            <div class="mdui-card-content mdui-typo">
+                <p>使用<a
+                        href="https://github.com/Binaryify/NeteaseCloudMusicApi">NeteaseCloudMusicApi</a>,支持网易云音乐各种操作(开发中)
+                </p>
+                <p>额外支持登录(如果是vip用户就可以下载vip歌曲了)</p>
+                <a href="api">进入</a>
+            </div>
+        </div>
     </div>
 </body>
-
-<a href="https://github.com/zcmimi/music-playlist-downloader" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#70B7FD; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
 </html>
