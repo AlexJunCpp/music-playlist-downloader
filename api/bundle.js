@@ -124,6 +124,7 @@ function order_toggle(){
 }
 function getjson(str){
     var xhr=new XMLHttpRequest();
+    xhr.withCredentials=true;
     xhr.open('GET',str,false);
     xhr.send();
     return JSON.parse(xhr.responseText);
@@ -255,11 +256,33 @@ function selectrev(){
 
 /*----------------------------------*/
 
-function login_email(){
+async function send(str){
     api=document.getElementById('api').value;
+    var xhr=new XMLHttpRequest();
+    xhr.withCredentials=true;
+    xhr.open('POST',api+str,true);
+    xhr.onreadystatechange=function(e){
+        if(this.readyState==4){
+            if(this.status==200)
+                console.log(this.responseText);
+            else console.log('error');
+        }
+    }
+    xhr.send();
+}
 
+function login_email(){
+    var email=document.getElementById('input_email').value,
+        passwd=document.getElementById('input_email_passwd').value;
+    send('/login?email='+encodeURI(email)+'&password='+encodeURI(passwd));
+}
+
+function login_phone(){
+    var phone=document.getElementById('input_phone').value,
+        passwd=document.getElementById('input_phone_passwd').value;
+    send('/login/cellphone?phone='+encodeURI(phone)+'&password='+encodeURI(passwd));
 }
 
 function logout(){
-    
+    send('/login/refresh');
 }
