@@ -135,9 +135,10 @@ function getjson(str){
     return JSON.parse(xhr.responseText);
 }
 function geturl(i){
-    if(!url[i])
-        url[i]=getjson(api+'/song/url?id='+list[i].id).data[0],
-        url[i].url=url[i].url.replace('http','https');
+    if(!url[i]){
+        url[i]=getjson(api+'/song/url?id='+list[i].id).data[0];
+        try{url[i].url=url[i].url.replace('http','https');}catch{}
+    }
     return url[i];
 }
 function getlrc(i){return getjson(api+'/lyric?id='+list[i].id);}
