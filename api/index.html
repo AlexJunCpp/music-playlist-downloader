@@ -27,8 +27,20 @@
                 </div>
                 <button class="mdui-btn mdui-btn-raised mdui-ripple" onclick="genlist()">加载</button>
                 <div class="mdui-toolbar-spacer"></div>
-                <button class="mdui-btn mdui-btn-raised mdui-ripple" mdui-dialog="{target:'#login'}">登录</button>
-                <button class="mdui-btn mdui-btn-raised mdui-ripple" onclick="logout()">注销</button>
+                <button class="mdui-btn mdui-btn-icon mdui-ripple" mdui-menu="{target:'#account_menu',covered:false,align:'right'}">
+                    <i class="mdui-icon material-icons">account_circle</i>
+                </button>
+                <ul class="mdui-menu" id='account_menu'>
+                    <li class="mdui-menu-item">
+                        <a href="javascript:;" mdui-dialog="{target:'#account_info',overlay:false}" class="mdui-ripple">个人信息</a>
+                    </li>
+                    <li class="mdui-menu-item">
+                        <a href="javascript:;" mdui-dialog="{target:'#login',overlay:false}" class="mdui-ripple">登录</a>
+                    </li>
+                    <li class="mdui-menu-item">
+                        <a href="javascript:logout();" class="mdui-ripple">注销</a>
+                    </li>
+                </ul>
             </div>
             <div class='mdui-toolbar mdui-color-white'>
                 <select id="download_name" class="mdui-select">
@@ -91,6 +103,21 @@
                 <input id='input_phone_passwd' class="mdui-textfield-input" type="password">
             </div>
             <button class="mdui-btn mdui-btn-raised" onclick="login_phone()">登录</button>
+        </div>
+    </div>
+    <div class="mdui-dialog" id="account_info">
+        <div class="mdui-card">
+            <div class="mdui-card-header">
+                <img class="mdui-card-header-avatar" id='user_avatar' src="">
+                <div class="mdui-card-header-title" id='user_name'></div>
+                <div class="mdui-card-header-subtitle" id='user_signature'></div>
+            </div>
+            <div class="mdui-card-primary">
+                <div class="mdui-card-primary-title">歌单</div>
+            </div>
+            <div class="mdui-card-content">
+                <ul class="mdui-list" id='user_playlist'></ul>
+            </div>
         </div>
     </div>
 </body>

@@ -128,25 +128,26 @@ function order_toggle(){
     order_typ^=1;
 }
 function getjson(str){
+    api=document.getElementById('api').value;
     var xhr=new XMLHttpRequest();
     xhr.withCredentials=true;
-    xhr.open('GET',str,false);
+    xhr.open('GET',api+str,false);
     xhr.send();
     return JSON.parse(xhr.responseText);
 }
 function geturl(i){
     if(!url[i]){
-        url[i]=getjson(api+'/song/url?id='+list[i].id).data[0];
+        url[i]=getjson('/song/url?id='+list[i].id).data[0];
         try{url[i].url=url[i].url.replace('http','https');}catch{}
     }
     return url[i];
 }
-function getlrc(i){return getjson(api+'/lyric?id='+list[i].id);}
+function getlrc(i){return getjson('/lyric?id='+list[i].id);}
 function get(){
-    api=document.getElementById('api').value;
+    list=[];
     var id=document.getElementById('playlistid').value,
-        playl,ids=[],detl;
-    playl=getjson(api+'/playlist/detail?id='+id).playlist.trackIds;
+        playl,ids=[],detl=[];
+    playl=getjson('/playlist/detail?id='+id).playlist.trackIds;
     for(i in playl){
         list.push({
             'id':playl[i].id,
@@ -155,8 +156,11 @@ function get(){
             'pic':null
         });
         ids.push(playl[i].id.toString());
+        if(ids.length>100)
+            detl.push.apply(detl,getjson('/song/detail?ids='+ids.join(',')).songs),
+            ids=[];
     }
-    detl=getjson(api+'/song/detail?ids='+ids.join(',')).songs;
+    detl.push.apply(detl,getjson('/song/detail?ids='+ids.join(',')).songs);
     for(i in detl){
         var title=detl[i].name,author=[];
         for(j in detl[i].ar)author.push(detl[i].ar[j].name);
@@ -218,6 +222,7 @@ function genlist(){
     mdui.snackbar({message: '加载中',timeout: 500,position: 'top'});
     get();
     songlist=document.getElementById('songlist');
+    songlist.innerHTML='';
     for(i in list){
         var li=document.createElement('li'),
             avatar=document.createElement('div'),
@@ -232,7 +237,7 @@ function genlist(){
         li.classList.add('mdui-list-item');
         li.setAttribute('data-id',i);
         avatar.classList.add('mdui-list-item-avatar');
-        pic.src=list[i].pic;
+        pic.src=list[i].pic+'?param=60y60';
         a.onclick=function(){play(this.parentElement.getAttribute('data-id'));};
         a.classList.add('mdui-list-item-content');
         title.innerText=list[i].title,title.classList.add('mdui-list-item-title');
@@ -264,33 +269,77 @@ function selectrev(){
 
 /*----------------------------------*/
 
-async function send(str){
+function send(str){
     api=document.getElementById('api').value;
     var xhr=new XMLHttpRequest();
     xhr.withCredentials=true;
-    xhr.open('POST',api+str,true);
-    xhr.onreadystatechange=function(e){
-        if(this.readyState==4){
-            if(this.status==200)
-                console.log(this.responseText);
-            else console.log('error');
-        }
-    }
+    xhr.open('POST',api+str,false);
     xhr.send();
+    return JSON.parse(xhr.responseText);
 }
 
 function login_email(){
     var email=document.getElementById('input_email').value,
         passwd=document.getElementById('input_email_passwd').value;
-    send('/login?email='+encodeURI(email)+'&password='+encodeURI(passwd));
+    var res=send('/login?email='+encodeURI(email)+'&password='+encodeURI(passwd));
+    if(res.code=='200'){
+        mdui.snackbar({message: '登录成功',timeout: 1000,position: 'top'});
+        console.log(res);
+        genuser(res);        
+    }
+    else{
+        passwd.value='',
+        mdui.snackbar({message: '错误,请检查用户名或密码',timeout: 1000,position: 'top'});
+    }
 }
 
 function login_phone(){
     var phone=document.getElementById('input_phone').value,
         passwd=document.getElementById('input_phone_passwd').value;
-    send('/login/cellphone?phone='+encodeURI(phone)+'&password='+encodeURI(passwd));
+    var res=send('/login/cellphone?phone='+encodeURI(phone)+'&password='+encodeURI(passwd));
+    if(res.code=='200'){
+        mdui.snackbar({message: '登录成功',timeout: 1000,position: 'top'});
+        console.log(res);
+        genuser(res);
+    }
+    else{
+        passwd.value='',
+        mdui.snackbar({message: '错误,请检查用户名或密码',timeout: 1000,position: 'top'});
+    }
 }
 
 function logout(){
-    send('/login/refresh');
+    var res=send('/login/refresh');
+    if(res.code=='200')
+        mdui.snackbar({message: '已退出登录',timeout: 1000,position: 'top'});
+}
+function changeplaylist(id){document.getElementById('playlistid').value=id;genlist();}
+function genuser(res){
+    document.getElementById('user_name').innerText=res.profile.nickname;
+    document.getElementById('user_avatar').src=res.profile.avatarUrl;
+    document.getElementById('user_signature').innerText=res.profile.signature;
+    var res=getjson('/user/playlist?uid='+res.account.id),
+        user_playlist=document.getElementById('user_playlist');
+    console.log(res);
+    res=res.playlist;
+    for(i in res){
+        var x=document.createElement('li'),
+            cover=document.createElement('div'),
+            coverimg=document.createElement('img'),
+            name=document.createElement('div');
+        x.classList.add('mdui-list-item');
+        cover.classList.add('mdui-list-item-avatar'),
+        name.classList.add('mdui-list-item-content');
+
+        coverimg.src=res[i].coverImgUrl;
+        name.innerText=res[i].name;
+
+        cover.appendChild(coverimg);
+        x.appendChild(cover),x.appendChild(name);
+
+        x.setAttribute('id',res[i].id);
+        x.onclick=function(){changeplaylist(this.id);}
+
+        user_playlist.appendChild(x);
+    }
 }
