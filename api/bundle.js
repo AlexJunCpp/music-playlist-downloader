@@ -84,6 +84,9 @@ function genlrc(i){
         t2.classList.add('mdui-list-item-text'),
         y.classList.add('mdui-list-item-content'),
         x.classList.add('mdui-list-item');
+
+        x.setAttribute('onclick',"audio.currentTime="+(lrcTime[i]-0.2).toString());
+
         try{
             var l1=lrcsplit(or[i])
             t1.innerText=l1;
