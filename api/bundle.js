@@ -99,9 +99,9 @@ function play(i){
     songlist[now].children[1].style.fontWeight='normal';
     now=Number(i);
     audio.setAttribute('src',geturl(i).url);
-    genlrc(i);
     songlist[i].scrollIntoView(false);
     songlist[i].children[1].style.fontWeight='bold';
+    genlrc(i);
     order_his.push(i);
 }
 function pre(){
@@ -130,7 +130,9 @@ function getjson(str){
     return JSON.parse(xhr.responseText);
 }
 function geturl(i){
-    if(!url[i])url[i]=getjson(api+'/song/url?id='+list[i].id).data[0];
+    if(!url[i])
+        url[i]=getjson(api+'/song/url?id='+list[i].id).data[0],
+        url[i].url=url[i].url.replace('http','https');
     return url[i];
 }
 function getlrc(i){return getjson(api+'/lyric?id='+list[i].id);}
