@@ -51,6 +51,10 @@ function lrcsplit(str){
     str[0]='';
     return str.join('');
 }
+function lrc_time(str){
+    if(str.substr(0,4)=='[by:'||!str)return 0;
+    return parseFloat(str.substr(1,3))*60+parseFloat(str.substring(4,10));
+}
 function genlrc(i){
     var t=getlrc(i),or,tr;
     lrcTime=[];
@@ -70,7 +74,8 @@ function genlrc(i){
         tr=t.tlyric.lyric.split('\n');
     }catch{console.log('无翻译或无歌词');}
     for(var i=0,j=0;i<or.length;++i){
-        lrcTime[i]=parseFloat(or[i].substr(1,3))*60+parseFloat(or[i].substring(4,10));
+        lrcTime[i]=lrc_time(or[i]);
+        try{while(lrc_time(tr[j])<lrcTime[i]&&j<tr.length)++j;}catch{}
         var x=document.createElement("li"),
             y=document.createElement('div'),
             t1=document.createElement('div'),
@@ -80,19 +85,16 @@ function genlrc(i){
         y.classList.add('mdui-list-item-content'),
         x.classList.add('mdui-list-item');
         try{
-            var l1=lrcsplit(or[i]);
-            t1.innerText=lrcsplit(or[i]);
-            y.appendChild(t1);
-
-            var l2=lrcsplit(tr[j]);
-            while(!l2&&j<tr.length)++j,l2=lrcsplit(tr[j]);
-            if(l1)t2.innerText=lrcsplit(tr[j]),++j;
-            y.appendChild(t2);
-        }catch{}        
+            var l1=lrcsplit(or[i])
+            t1.innerText=l1;
+            if(l1&&lrc_time(tr[j])==lrcTime[i]&&j<tr.length)
+                t2.innerText=lrcsplit(tr[j]);
+        }catch{}
+        y.appendChild(t1);
+        y.appendChild(t2);
         x.appendChild(y);
         lrcul.appendChild(x);
     }
-	lrcTime[lrcTime.length]=lrcTime[lrcTime.length-1]+3;
     lrcli=document.querySelectorAll('#lrclist li');
 }
 function play(i){
