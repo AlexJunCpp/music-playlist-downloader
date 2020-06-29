@@ -5,10 +5,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="keywords" content="在线歌单下载器">
-    <meta name='description' itemprop="description" content="在线歌单下载器,支持网易云、QQ、酷狗、虾米、百度">
     <title>在线歌单下载器</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/zdhxiong/mdui@0.4.3/dist/css/mdui.min.css" type="text/css">
-    <script async src="https://cdn.jsdelivr.net/gh/zdhxiong/mdui@0.4.3/dist/js/mdui.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/zdhxiong/mdui/dist/css/mdui.min.css" type="text/css">
+    <script async src="https://cdn.jsdelivr.net/gh/zdhxiong/mdui/dist/js/mdui.min.js"></script>
 </head>
 <style>
 .mdui-card{margin: 20px;}
@@ -40,29 +39,29 @@ a{color:#0099ff;text-decoration: none;}
 
         <div class="mdui-card">
             <div class="mdui-card-primary">
-                <a href='meting' class="mdui-card-primary-title">meting</a>
+                <a href='./meting/index.html' class="mdui-card-primary-title">meting</a>
                 <div class="mdui-card-primary-subtitle">使用meting,官方提供api</div>
             </div>
             <div class="mdui-card-content mdui-typo">
                 <p>使用<a href="https://github.com/metowolf/Meting">meting</a>,支持网易云、QQ、酷狗、虾米、百度音乐等</p>
                 <p>支持下载能试听的歌曲(能听就可以下载,包含vip下载但可以试听,但不包含vip)</p>
-                <a href="meting">进入</a>
+                <a href="./meting/index.html">进入</a>
             </div>
         </div>
 
         <div class="mdui-card">
             <div class="mdui-card-primary">
-                <a href='api' class="mdui-card-primary-title">NeteaseCloudMusicApi</a>
+                <a href='./api/index.html' class="mdui-card-primary-title">NeteaseCloudMusicApi</a>
                 <div class="mdui-card-primary-subtitle">使用NeteaseCloudMusicApi,暂无官方提供api</div>
             </div>
             <div class="mdui-card-content mdui-typo">
-                <p>使用<a
-                        href="https://github.com/Binaryify/NeteaseCloudMusicApi">NeteaseCloudMusicApi</a>,支持网易云音乐各种操作(开发中)
+                <p>使用<a href="https://github.com/Binaryify/NeteaseCloudMusicApi">NeteaseCloudMusicApi</a>,支持网易云音乐各种操作(开发中)
                 </p>
-                <p>建议使用本地api</p>
-                <p>提供临时api: https://cloudmusicapi.zcmimi.top</p>
+                <p>建议使用本地搭建api,以防被他人劫持密码</p>
+                <p>自建api: <code>https://netease.music.zcmimi.top</code></p>
+				<p>自建<del>白嫖</del>leancloud国际版api: <code>https://cloudmusicapi.avosapps.us</code></p>
                 <p>额外支持登录(如果是vip用户就可以下载vip歌曲了)</p>
-                <a href="api">进入</a>
+                <a href="./api/index.html">进入</a>
             </div>
         </div>
     </div>

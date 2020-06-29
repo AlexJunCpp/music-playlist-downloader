@@ -2,8 +2,6 @@
 #content-left{
     width: 50%;
     height: 100%;
-    float: left;
-    clear: left;
     position: fixed;
     top: 0;
     left: 0;
@@ -15,9 +13,8 @@
 #content-right{
     width: 50%;
     height: 100%;
-    float: right;
-    clear: right;
     position: fixed;
+    float: right;
     top: 0;
     right: 0;
     overflow-x: scroll;
@@ -26,5 +23,6 @@
 #lrclist{
     font-size: 20px;
 }
+#lrclist .mdui-list-item{text-align: center;}
 li.on{background-color: #f7a4b942;}
 ul{transition-duration: 600ms;}

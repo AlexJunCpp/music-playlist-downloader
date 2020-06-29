@@ -8,118 +8,203 @@
     <meta name='description' itemprop="description" content="在线歌单下载器,支持网易云、QQ、酷狗、虾米、百度">
     <title>在线歌单下载器</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/zdhxiong/mdui@0.4.3/dist/css/mdui.min.css" type="text/css">
-    <script async src="https://cdn.jsdelivr.net/gh/zdhxiong/mdui@0.4.3/dist/js/mdui.min.js"></script>
-    <link rel="stylesheet" href="css.css" type="text/css">
-    <script async src='bundle.js'></script>
 </head>
-
-<body class="mdui-theme-accent-blue mdui-appbar-with-toolbar padding-top">
-    <div id="content-left">
-        <div id='top_bar' class='mdui-appbar mdui-shadow-2 mdui-appbar-fixed'>
-            <div class='mdui-toolbar mdui-color-white'>
+<style>
+#content-left{width: fit-content;}
+#songlist{padding-bottom: 50px;}
+#content-right{
+    width: fit-content;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    right: 0;
+    overflow-x: scroll;
+    overflow-y: scroll;
+}
+#lrclist{
+    font-size: 20px;
+}
+#lrclist .mdui-list-item{text-align: center;}
+li.on{
+    border-left: solid;
+    background-color: #f3f3f3;
+}
+li.on .mdui-list-item-content{
+    font-size: 20px;
+    font-weight:bold;
+}
+ul{transition-duration: 600ms;}
+#loading{z-index:10000000;position: fixed;top:0;bottom:0;left:0;right:0;margin: auto;height: 50px;width: 50px;}
+</style>
+<body class="mdui-bottom-nav-fixed mdui-appbar-inset">
+    <div id="content-left" class="mdui-appbar-inset">
+        <ul id="songlist" class="mdui-list"></ul>
+    </div>
+    <div id='content-right'>
+        <ul id="lrclist" class='mdui-list'>
+        </ul>
+    </div>
+    <div class="mdui-drawer mdui-drawer-close mdui-color-white mdui-drawer-full-height" id="drawer">
+        <ul class="mdui-list">
+            <li class='mdui-subheader'>api</li>
+            <li class="mdui-list-item" mdui-tooltip="{content:'可登录直接获取自己的歌单'}">
                 <div class='mdui-textfield'>
-                    <input id='playlistid' class='mdui-textfield-input' placeholder='请输入歌单id' type='text'
-                        value="765727960">
+                    <input id='api' class='mdui-textfield-input' placeholder='api地址' type='text'
+                        value="https://netease.music.zcmimi.top">
                 </div>
+            </li>
+            <li class='mdui-subheader'>歌单id</li>
+            <li class="mdui-list-item" mdui-tooltip="{content:'可登录直接获取自己的歌单'}">
                 <div class='mdui-textfield'>
-                    <input id='api' class='mdui-textfield-input' placeholder='请输入api地址' type='text'
-                        value="http://localhost:3000">
+                    <input id='playlistid' class='mdui-textfield-input' placeholder='歌单id' type='text'
+                        value="3167786119">
                 </div>
-                <button class="mdui-btn mdui-btn-raised mdui-ripple" onclick="genlist()">加载</button>
-                <div class="mdui-toolbar-spacer"></div>
-                <button class="mdui-btn mdui-btn-icon mdui-ripple" mdui-menu="{target:'#account_menu',covered:false,align:'right'}">
-                    <i class="mdui-icon material-icons">account_circle</i>
-                </button>
-                <ul class="mdui-menu" id='account_menu'>
-                    <li class="mdui-menu-item">
-                        <a href="javascript:;" mdui-dialog="{target:'#account_info',overlay:false}" class="mdui-ripple">个人信息</a>
-                    </li>
-                    <li class="mdui-menu-item">
-                        <a href="javascript:;" mdui-dialog="{target:'#login',overlay:false}" class="mdui-ripple">登录</a>
-                    </li>
-                    <li class="mdui-menu-item">
-                        <a href="javascript:logout();" class="mdui-ripple">注销</a>
-                    </li>
-                </ul>
-            </div>
-            <div class='mdui-toolbar mdui-color-white'>
-                <select id="download_name" class="mdui-select">
+            </li>
+            <li class="mdui-list-item" onclick="gen_list()">
+                <i class="mdui-list-item-icon mdui-icon material-icons">refresh</i>
+                <div class="mdui-list-item-content">加载</div>
+            </li>
+            <li class='mdui-subheader'>下载歌曲</li>
+            <li class="mdui-list-item">
+                <select id="download_name" class="mdui-select" mdui-tooltip="{content:'命名方式'}">
                     <option value=1>歌曲名-歌手</option>
                     <option value=0>歌手-歌曲名</option>
                     <option value=2>歌曲名</option>
                 </select>
+            </li>
+            <li class="mdui-list-item">
                 <label class="mdui-checkbox">
                     <input id="download_lrc" type="checkbox" checked onclick="download_lrc^=1;">
                     <i class="mdui-checkbox-icon"></i>下载歌词
                 </label>
-                <button onclick="download()" class="mdui-btn mdui-btn-icon">
-                    <i class="mdui-icon material-icons">file_download</i>
-                </button>
-                <button onclick="selectrev()" title='反选' class="mdui-btn mdui-btn-icon">
-                    <i class="mdui-icon material-icons">exposure</i>
-                    </a>
-            </div>
-            <div class='mdui-toolbar mdui-color-white'>
-                <button onclick="pre()" class="mdui-btn mdui-btn-icon"><i
-                        class='mdui-icon material-icons'>skip_previous</i></button>
-                <button onclick="order_toggle()" class="mdui-btn mdui-btn-icon" id='order_toggle'><i
-                        class="mdui-icon material-icons">shuffle</i></button>
-                <button onclick="nxt()" class="mdui-btn mdui-btn-icon"><i
-                        class='mdui-icon material-icons'>skip_next</i></button>
-                <audio id="player" src="" controls="controls" autoplay="autoplay"></audio>
-            </div>
-            <div class="mdui-progress" id='progressbar'>
-                <div class="mdui-progress-determinate" id='progressbar_' style="width: 0%;"></div>
-            </div>
-        </div>
-        <ul id="songlist" class="mdui-list"></ul>
-    </div>
-    <div id='content-right'>
-        <ul id="lrclist" class='mdui-list'></ul>
-    </div>
-    <div class="mdui-dialog" id="login">
-        <div class="mdui-tab mdui-tab-full-width" id="login_tab" mdui-tab>
-            <a href="#login_email" class="mdui-ripple">邮箱登录</a>
-            <a href="#login_phone" class="mdui-ripple">手机登录</a>
-        </div>
-        <div id="login_email" class="mdui-p-a-2">
-            <div class="mdui-textfield mdui-textfield-floating-label">
-                <label class="mdui-textfield-label">Email</label>
-                <input id='input_email' class="mdui-textfield-input" type="email">
-            </div>
-            <div class="mdui-textfield mdui-textfield-floating-label">
-                <label class="mdui-textfield-label">Password</label>
-                <input id='input_email_passwd' class="mdui-textfield-input" type="password">
-            </div>
-            <button class="mdui-btn mdui-btn-raised" onclick="login_email()">登录</button>
-        </div>
-        <div id="login_phone" class="mdui-p-a-2">
-            <div class="mdui-textfield mdui-textfield-floating-label">
-                <label class="mdui-textfield-label">Phone</label>
-                <input id='input_phone' class="mdui-textfield-input" type="tel">
-            </div>
-            <div class="mdui-textfield mdui-textfield-floating-label">
-                <label class="mdui-textfield-label">Password</label>
-                <input id='input_phone_passwd' class="mdui-textfield-input" type="password">
-            </div>
-            <button class="mdui-btn mdui-btn-raised" onclick="login_phone()">登录</button>
-        </div>
-    </div>
-    <div class="mdui-dialog" id="account_info">
-        <div class="mdui-card">
-            <div class="mdui-card-header">
-                <img class="mdui-card-header-avatar" id='user_avatar' src="">
-                <div class="mdui-card-header-title" id='user_name'></div>
-                <div class="mdui-card-header-subtitle" id='user_signature'></div>
-            </div>
-            <div class="mdui-card-primary">
-                <div class="mdui-card-primary-title">歌单</div>
-            </div>
-            <div class="mdui-card-content">
-                <ul class="mdui-list" id='user_playlist'></ul>
-            </div>
-        </div>
+            </li>
+            <li class="mdui-list-item" onclick="download()">
+                <i class="mdui-list-item-icon mdui-icon material-icons">file_download</i>
+                <div class="mdui-list-item-content">下载选中</div>
+            </li>
+            <li class="mdui-list-item" onclick="selectrev()">
+                <i class="mdui-list-item-icon mdui-icon material-icons">exposure</i>
+                <div class="mdui-list-item-content">反选</div>
+            </li>
+            <li class="mdui-list-item" mdui-tooltip="{content:'当前文件下载进度'}">
+                <div class="mdui-progress" id='progressbar'>
+                    <div class="mdui-progress-determinate" id='progressbar_' style="width: 0%;"></div>
+                </div>
+            </li>
+            <li class='mdui-subheader'>账户</li>
+            <li class="mdui-list-item" onclick="login_dialog.open()">
+                <i class="mdui-list-item-icon mdui-icon material-icons">input</i>
+                <div class="mdui-list-item-content">登录</div>
+            </li>
+            <li class="mdui-list-item need-login" onclick="logout()" hidden>
+                <i class="mdui-list-item-icon mdui-icon material-icons">clear</i>
+                <div class="mdui-list-item-content">注销</div>
+            </li>
+            <li class="mdui-list-item need-login" onclick="user_playlist_dialog.open()" hidden>
+                <i class="mdui-list-item-icon mdui-icon material-icons">favorite</i>
+                <div class="mdui-list-item-content">我的歌单</div>
+            </li>
+            <li class="mdui-list-item need-login" onclick="daily_recommend_dialog.open()" hidden>
+                <i class="mdui-list-item-icon mdui-icon material-icons">today</i>
+                <div class="mdui-list-item-content">每日推荐</div>
+            </li>
+        </ul>
     </div>
 </body>
 
+<div class="mdui-bottom-nav mdui-appbar-inset" style="height: auto;">
+<div class="mdui-appbar mdui-color-white">
+    <div class='mdui-toolbar' id='song_range_slider' hidden>
+        <label class="mdui-slider">
+            <input type="range" id='song_range' step="0.1" min="0" max="100">
+        </label>
+    </div>
+    <div class='mdui-toolbar'>
+        <button onclick="drawer.toggle()" class="mdui-btn mdui-btn-icon" mdui-tooltip="{content:'菜单'}">
+            <i class='mdui-icon material-icons'>menu</i>
+        </button>
+        <div class="mdui-card-header" style="min-width: fit-content;">
+            <img class="mdui-card-header-avatar" id='song_pic'>
+            <div class="mdui-card-header-title" id='song_title'></div>
+            <div class="mdui-card-header-subtitle" id='song_author'></div>
+        </div>
+        <button onclick="pre()" class="mdui-btn mdui-btn-icon" mdui-tooltip="{content:'上一首'}">
+            <i class='mdui-icon material-icons'>skip_previous</i>
+        </button>
+        <button id='song_play_toggle' class="mdui-btn mdui-btn-icon" mdui-tooltip="{content:'暂停'}">
+            <i class='mdui-icon material-icons'>play_arrow</i>
+        </button>
+        <button onclick="nxt()" class="mdui-btn mdui-btn-icon" mdui-tooltip="{content:'下一首'}">
+            <i class='mdui-icon material-icons'>skip_next</i>
+        </button>
+        <button onclick="order_toggle()" class="mdui-btn mdui-btn-icon" id='order_toggle' mdui-tooltip="{content:'随机顺序'}">
+            <i class="mdui-icon material-icons">shuffle</i>
+        </button>
+        <audio id="player" control="false" autoplay="autoplay"></audio>
+        <a id='song_time' onclick="document.getElementById('song_range_slider').hidden^=1;" mdui-tooltip="{content:'点击显示/隐藏进度条'}">0/0</a>
+        <button class="mdui-btn mdui-btn-icon" mdui-menu="{target: '#sound_volume_menu'}">
+            <i class="mdui-icon material-icons">volume_up</i>
+        </button>
+        <ul class="mdui-menu" id='sound_volume_menu'>
+            <label class="mdui-slider"><input type="range" id='song_volume' step="0.01" min="0" max="1"></label>
+        </ul>
+    </div>
+</div>
+</div>
+
+<div class="mdui-dialog" id="login_dialog">
+    <div class="mdui-tab mdui-tab-full-width" id="login_tab" mdui-tab>
+        <a href="#login_email">邮箱登录</a>
+        <a href="#login_phone">手机登录</a>
+    </div>
+    <div id="login_email" class="mdui-p-a-2">
+        <div class="mdui-textfield mdui-textfield-floating-label">
+            <label class="mdui-textfield-label">Email</label>
+            <input id='input_email' class="mdui-textfield-input" type="text">
+        </div>
+        <div class="mdui-textfield mdui-textfield-floating-label">
+            <label class="mdui-textfield-label">Password</label>
+            <input id='input_email_passwd' class="mdui-textfield-input" type="password">
+        </div>
+        <button class="mdui-btn mdui-btn-raised" onclick="login_email()">登录</button>
+    </div>
+    <div id="login_phone" class="mdui-p-a-2">
+        <div class="mdui-textfield mdui-textfield-floating-label">
+            <label class="mdui-textfield-label">Phone</label>
+            <input id='input_phone' class="mdui-textfield-input" type="tel">
+        </div>
+        <div class="mdui-textfield mdui-textfield-floating-label">
+            <label class="mdui-textfield-label">Password</label>
+            <input id='input_phone_passwd' class="mdui-textfield-input" type="password">
+        </div>
+        <button class="mdui-btn mdui-btn-raised" onclick="login_phone()">登录</button>
+    </div>
+</div>
+
+<div class="mdui-dialog" id="user_playlist_dialog">
+    <div class="mdui-dialog-content">
+        <div class="mdui-card-header">
+            <img class="mdui-card-header-avatar" id='user_avatar' src="">
+            <div class="mdui-card-header-title" id='user_name'></div>
+            <div class="mdui-card-header-subtitle" id='user_signature'></div>
+        </div>
+        <div class="mdui-card-primary">
+            <div class="mdui-card-primary-title">我的歌单</div>
+        </div>
+        <ul class="mdui-list" id='user_playlist'></ul>
+    </div>
+</div>
+
+<div class="mdui-dialog" id="daily_recommend_dialog">
+    <div class="mdui-dialog-content">
+        <div class="mdui-card-primary">
+            <div class="mdui-card-primary-title">每日推荐歌单</div>
+        </div>
+        <ul class="mdui-list" id='daily_recommend'></ul>
+    </div>
+</div>
+
+<div id='loading' class="mdui-spinner" hidden></div>
+<script src="https://cdn.jsdelivr.net/gh/zdhxiong/mdui@0.4.3/dist/js/mdui.min.js"></script>
+<script src='bundle.js'></script>
 </html>

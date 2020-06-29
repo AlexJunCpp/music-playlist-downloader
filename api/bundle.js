@@ -4,150 +4,119 @@ var lrcTime=[],
     lrcli,
     currentLine,
     currentTime,
-    lrc_ppxx,
     songlist,
     screencenter=window.innerHeight/2;
-var download_lrc,issl=[];
-var audio,now,order_his=[],order_typ;
+var download_lrc=1,issl=[];
+var audio=document.getElementById('player'),
+    now=0,
+    range=document.getElementById('song_range'),
+    order_his=[],
+    order_typ;
+var loading=document.getElementById('loading'),
+    login_dialog=new mdui.Dialog('#login_dialog'),
+    user_playlist_dialog=new mdui.Dialog('#user_playlist_dialog'),
+    daily_recommend_dialog=new mdui.Dialog('#daily_recommend_dialog'),
+    drawer=new mdui.Drawer('#drawer'),
+    content_right=document.getElementById('content-right');
 
-window.onload=function(){
-    now=0;
-    download_lrc=1;
-    audio=document.getElementById('player');
-    audio.addEventListener('ended',function(){
+if(getCookie('account'))
+    document.querySelectorAll('.need-login').forEach(x=>{x.hidden=0;}),
+    gen_user_playlist(JSON.parse(getCookie('account'))),
+    gen_daily_recommend_list();
+
+drawer.open();
+
+function format_s(v){
+    var s=parseInt(v),m,h;
+    if(s<60)return s;
+    m=parseInt(s/60),s%=60;
+    if(m<60)return m+':'+s;
+    return parseInt(m/60)+':'+m%60+s;    
+}
+
+function lrc_focus(x=currentLine){
+    content_right.scroll({top:lrcli[x].offsetTop,behavior:'auto'});
+    lrcli[x].classList.add('on');
+}
+function lrc_unfocus(x=currentLine){
+    try{lrcli[x].classList.remove('on')}catch{}
+}
+audio.volume=0.5;
+audio.loop=false;
+audio.addEventListener('ended',function(){
         if(order_typ)rnd();
         else nxt();
-    });
-    audio.ontimeupdate=function(){
-        currentTime=audio.currentTime;
-        for(var j=currentLine,len=lrcTime.length;j<len;j++){
-            if (currentTime<lrcTime[j+1]&&currentTime>lrcTime[j]){
-                currentLine=j;
-                lrc_ppxx=screencenter-(currentLine*72);
-                lrcul.style.transform="translateY("+lrc_ppxx+"px)";
-                try{lrcli[currentLine-1].classList.remove('on')}catch{}
-                lrcli[currentLine].classList.add('on');
-                break;
-            }
+});
+audio.ontimeupdate=function(){
+    currentTime=audio.currentTime;
+    range.value=currentTime*100/this.duration;
+    mdui.updateSliders(range.parentElement);
+    document.getElementById('song_time').innerText=format_s(currentTime)+'/'+format_s(this.duration);
+    for(var j=currentLine,len=lrcTime.length;j<len;++j){
+        if (currentTime<lrcTime[j+1]&&currentTime>lrcTime[j]){
+            if(currentLine==j)break;
+            lrc_unfocus();
+            lrc_focus(currentLine=j);
+            break;
         }
-    };
-    audio.onseeked=function(){
-        currentTime=audio.currentTime;
-        try{lrcli[currentLine].classList.remove('on');}catch{}
-        for(k=0,len=lrcTime.length;k<len;++k){
-            if(currentTime<lrcTime[k+1]&&currentTime<lrcTime[k]){
-                currentLine=k;
-                break;
-            }
+    }
+};
+audio.onseeked=function(){
+    try{lrcli[currentLine].classList.remove('on');}catch{}
+    currentTime=audio.currentTime;
+    range.value=currentTime*100/this.duration;
+    mdui.updateSliders(range.parentElement);
+    document.getElementById('song_time').innerText=format_s(currentTime)+'/'+format_s(this.duration);
+    for(var j=0,len=lrcTime.length;j<len;++j){
+        if(currentTime<lrcTime[j+1]&&currentTime<lrcTime[j]){
+            if(currentLine==j)break;
+            lrc_unfocus();
+            lrc_focus(currentLine=j);
+            break;
         }
-    };
-    audio.onerror=function(){
+    }
+};
+audio.onerror=function(){
         mdui.snackbar({message: '播放失败,自动下一首',timeout: 500,position: 'top'});
         nxt();
-    };
+};
+document.getElementById('song_play_toggle').onclick=function(){
+    if(audio.paused)audio.play(),this.children[0].innerText='pause';
+    else audio.pause(),this.children[0].innerText='play_arrow';
 }
-function lrcsplit(str){
-    str=str.split(']');
-    str[0]='';
-    return str.join('');
+document.getElementById('song_range').onchange=function(){
+    audio.currentTime=audio.duration*this.value/100;
 }
-function lrc_time(str){
-    if(str.substr(0,4)=='[by:'||!str)return 0;
-    return parseFloat(str.substr(1,3))*60+parseFloat(str.substring(4,10));
+document.getElementById('song_volume').onchange=function(){
+    audio.volume=this.value;
 }
-function genlrc(i){
-    var t=getlrc(i),or,tr;
-    lrcTime=[];
-    lrcul=document.getElementById('lrclist');
-    lrcul.innerHTML="";
-    lrcul.style.transform="translateY("+screencenter+"px)";
-    currentLine=0;
-    if(t.nolyric){
-        var x=document.createElement("li");
-        x.classList.add('mdui-list-item');
-        x.innerText="暂无歌词";
-        lrcul.appendChild(x);
-        return;
-    }
+
+async function ajax(url,set={}){
     try{
-        or=t.lrc.lyric.split('\n');
-        tr=t.tlyric.lyric.split('\n');
-    }catch{console.log('无翻译或无歌词');}
-    for(var i=0,j=0;i<or.length;++i){
-        lrcTime[i]=lrc_time(or[i]);
-        try{while(lrc_time(tr[j])<lrcTime[i]&&j<tr.length)++j;}catch{}
-        var x=document.createElement("li"),
-            y=document.createElement('div'),
-            t1=document.createElement('div'),
-            t2=document.createElement('div');
-        t1.classList.add('mdui-list-item-title'),
-        t2.classList.add('mdui-list-item-text'),
-        y.classList.add('mdui-list-item-content'),
-        x.classList.add('mdui-list-item');
+        const res=await fetch(url,set);  
+        if(res.ok)return res;
+    }catch(ex){console.log(ex);}
+};
 
-        x.setAttribute('onclick',"audio.currentTime="+(lrcTime[i]-0.2).toString());
-
-        try{
-            var l1=lrcsplit(or[i])
-            t1.innerText=l1;
-            if(l1&&lrc_time(tr[j])==lrcTime[i]&&j<tr.length)
-                t2.innerText=lrcsplit(tr[j]);
-        }catch{}
-        y.appendChild(t1);
-        y.appendChild(t2);
-        x.appendChild(y);
-        lrcul.appendChild(x);
-    }
-    lrcli=document.querySelectorAll('#lrclist li');
-}
-function play(i){
-    songlist[now].children[1].style.fontWeight='normal';
-    now=Number(i);
-    audio.setAttribute('src',geturl(i).url);
-    songlist[i].scrollIntoView(false);
-    songlist[i].children[1].style.fontWeight='bold';
-    genlrc(i);
-    order_his.push(i);
-}
-function pre(){
-    if(order_his.length>1)
-        order_his.pop(),play(order_his.pop());
-}
-function nxt(){
-    if(order_typ)rnd();
-    else{
-        if(now<list.length-1)play(now+1);
-        else play(0);
-    }
-}
-function rnd(){play(Math.floor((Math.random()*(list.length-1))));}
-function order_toggle(){
-    var x=document.getElementById('order_toggle');
-    if(order_typ)x.style.color='';
-    else x.style.color='#f7a4b9';
-    order_typ^=1;
-}
-function getjson(str){
+async function get_api(str){
     api=document.getElementById('api').value;
-    var xhr=new XMLHttpRequest();
-    xhr.withCredentials=true;
-    xhr.open('GET',api+str,false);
-    xhr.send();
-    return JSON.parse(xhr.responseText);
+    var x=await ajax(api+str,{credentials:'include',method:'GET'}),
+        text=await x.text();
+    return JSON.parse(text);
 }
-function geturl(i){
-    if(!url[i]){
-        url[i]=getjson('/song/url?id='+list[i].id).data[0];
-        try{url[i].url=url[i].url.replace('http','https');}catch{}
-    }
-    return url[i];
+async function post_api(str){
+    api=document.getElementById('api').value;
+    var x=await ajax(api+str,{credentials:'include',method:'POST'}),
+        text=await x.text();
+    return JSON.parse(text);
 }
-function getlrc(i){return getjson('/lyric?id='+list[i].id);}
-function get(){
+
+async function getplaylist(){
     list=[];
     var id=document.getElementById('playlistid').value,
-        playl,ids=[],detl=[];
-    playl=getjson('/playlist/detail?id='+id).playlist.trackIds;
+        playl,ids=[],detl=[],res;
+    res=await get_api('/playlist/detail?id='+id);
+    playl=res.playlist.trackIds;
     for(i in playl){
         list.push({
             'id':playl[i].id,
@@ -157,10 +126,12 @@ function get(){
         });
         ids.push(playl[i].id.toString());
         if(ids.length>100)
-            detl.push.apply(detl,getjson('/song/detail?ids='+ids.join(',')).songs),
+            res=await get_api('/song/detail?ids='+ids.join(',')),
+            detl.push.apply(detl,res.songs),
             ids=[];
     }
-    detl.push.apply(detl,getjson('/song/detail?ids='+ids.join(',')).songs);
+    res=await get_api('/song/detail?ids='+ids.join(',')),
+    detl.push.apply(detl,res.songs);
     for(i in detl){
         var title=detl[i].name,author=[];
         for(j in detl[i].ar)author.push(detl[i].ar[j].name);
@@ -170,57 +141,10 @@ function get(){
         list[i].pic=detl[i].al.picUrl;
     }
 }
-function saveas(res,filename){
-    var blob=res,a=document.createElement('a');
-    a.download=filename;
-    a.href=window.URL.createObjectURL(blob);
-    a.click();
-}
-function download_(i){
-    while(!issl[i]&&i<list.length)++i;
-    if(i>=list.length)return;
-    songlist[i].scrollIntoView(false);
-    songlist[i].style.background='#ffeaf0';
-    
-    var name=list[i].author+"-"+list[i].title,
-        val=document.getElementById('download_name').value;
-    if(val==1)name=list[i].title+"-"+list[i].author;
-    else if(val==2)name=list[i].title;
 
-    var tmp=name,r="/\\*?<>|?:";name='';
-    for(var j=0;j<tmp.length;++j)
-        if(r.indexOf(tmp[j])!=-1)name+='_';
-        else name+=tmp[j];
-    console.log((i+1)+'/'+list.length);
-
-    var xhr=new XMLHttpRequest();
-    xhr.onprogress=function(e){
-        if(e.lengthComputable)
-            document.getElementById("progressbar_").style.width=Math.round(100*e.loaded/e.total)+'%';
-    };
-    xhr.responseType="blob";
-    xhr.open("GET",geturl(i).url,true);
-    xhr.onreadystatechange=function(e){
-        if(this.readyState==4){
-            if(this.status==200)
-                saveas(this.response,name+'.mp3');
-            download_(i+1);
-        }
-    }
-    xhr.send();
-
-    if(!download_lrc)return;
-    var blob=new Blob([getlrc(i)],{type:"text/plain;charset=utf-8"});
-    saveas(blob,name+'.lrc');
-}
-function download(){
-    mdui.snackbar({message: '开始下载',timeout: 500,position: 'top'});
-    download_(0);
-    mdui.snackbar({message: '下载完成',timeout: 500,position: 'top'});
-}
-function genlist(){
-    mdui.snackbar({message: '加载中',timeout: 500,position: 'top'});
-    get();
+async function gen_list(){
+    loading.hidden=0;
+    await getplaylist();
     songlist=document.getElementById('songlist');
     songlist.innerHTML='';
     for(i in list){
@@ -256,8 +180,156 @@ function genlist(){
         songlist.appendChild(li);
     }
     songlist=songlist.children;
-    mdui.snackbar({message: '加载完毕',timeout: 500,position: 'top'});
+    loading.hidden=1;
 }
+
+function lrcsplit(str){
+    str=str.split(']');
+    str[0]='';
+    return str.join('');
+}
+function lrc_time(str){
+    if(str.substr(0,4)=='[by:'||!str)return 0;
+    return parseFloat(str.substr(1,3))*60+parseFloat(str.substring(4,10));
+}
+async function gen_lrc(i){
+    var t=await get_lrc(i),or,tr;
+    lrcTime=[];
+    lrcul=document.getElementById('lrclist');
+    lrcul.innerHTML="";
+    lrcul.style.transform="translateY("+screencenter+"px)";
+    currentLine=0;
+    if(t.nolyric){
+        lrcul.innerHTML=`<li class="mdui-list-item"><div class="mdui-list-item-content">暂无歌词</div></li>`;
+        return;
+    }
+    try{
+        or=t.lrc.lyric.split('\n');
+        tr=t.tlyric.lyric.split('\n');
+    }catch{
+        console.log('无翻译或无歌词');
+        return;
+    }
+    for(var i=0,j=0;i<or.length;++i){
+        lrcTime[i]=lrc_time(or[i]);
+        try{while(lrc_time(tr[j])<lrcTime[i]&&j<tr.length)++j;}catch{}
+        var x=document.createElement("li"),
+            y=document.createElement('div'),
+            t1=document.createElement('div'),
+            t2=document.createElement('div');
+        t1.classList.add('mdui-list-item-title'),
+        t2.classList.add('mdui-list-item-text'),
+        y.classList.add('mdui-list-item-content'),
+        x.classList.add('mdui-list-item');
+
+        x.setAttribute('onclick',"audio.currentTime="+(lrcTime[i]-0.2).toString()+',audio.onseeked');
+
+        try{
+            var l1=lrcsplit(or[i])
+            t1.innerText=l1;
+            if(l1&&lrc_time(tr[j])==lrcTime[i]&&j<tr.length)
+                t2.innerText=lrcsplit(tr[j]);
+        }catch{}
+        y.appendChild(t1);
+        y.appendChild(t2);
+        x.appendChild(y);
+        lrcul.appendChild(x);
+    }
+    lrcli=document.querySelectorAll('#lrclist li');
+}
+async function play(i){
+    songlist[now].children[1].style.fontWeight='normal';
+    now=Number(i);
+    if(audio.paused)document.getElementById('song_play_toggle').onclick();
+    audio.setAttribute('src',await geturl(i));
+    document.getElementById('song_pic').setAttribute('src',list[i].pic);
+    document.getElementById('song_title').innerText=list[i].title;
+    document.getElementById('song_author').innerText=list[i].author;
+    songlist[i].scrollIntoView(false);
+    songlist[i].children[1].style.fontWeight='bold';
+    gen_lrc(i);
+    order_his.push(i);
+}
+function pre(){
+    if(order_his.length>1)
+        order_his.pop(),play(order_his.pop());
+}
+function nxt(){
+    if(order_typ)rnd();
+    else{
+        if(now<list.length-1)play(now+1);
+        else play(0);
+    }
+}
+function rnd(){play(Math.floor((Math.random()*(list.length-1))));}
+function order_toggle(){
+    var x=document.getElementById('order_toggle');
+    if(order_typ)x.style.color='';
+    else x.style.color='#f7a4b9';
+    order_typ^=1;
+}
+async function geturl(i){
+    if(!url[i]){
+        var res=await get_api('/song/url?id='+list[i].id);
+        url[i]=res.data[0].url;
+        try{url[i]=url[i].replace('http','https');}catch{}
+    }
+    return url[i];
+}
+async function get_lrc(i){
+    var res=await get_api('/lyric?id='+list[i].id);
+    return res;
+}
+
+function saveas(res,filename){
+    var blob=res,a=document.createElement('a');
+    a.download=filename;
+    a.href=window.URL.createObjectURL(blob);
+    a.click();
+}
+async function download_(i){
+    while(!issl[i]&&i<list.length)++i;
+    if(i>=list.length)return;
+    songlist[i].scrollIntoView(false);
+    songlist[i].style.background='#ffeaf0';
+    
+    var name=list[i].author+"-"+list[i].title,
+        val=document.getElementById('download_name').value;
+    if(val==1)name=list[i].title+"-"+list[i].author;
+    else if(val==2)name=list[i].title;
+
+    var tmp=name,r="/\\*?<>|?:";name='';
+    for(var j=0;j<tmp.length;++j)
+        if(r.indexOf(tmp[j])!=-1)name+='_';
+        else name+=tmp[j];
+    console.log((i+1)+'/'+list.length);
+
+    var xhr=new XMLHttpRequest();
+    xhr.onprogress=function(e){
+        if(e.lengthComputable)
+            document.getElementById("progressbar_").style.width=Math.round(100*e.loaded/e.total)+'%';
+    };
+    xhr.responseType="blob";
+    xhr.open("GET",await geturl(i),true);
+    xhr.onreadystatechange=function(e){
+        if(this.readyState==4){
+            if(this.status==200)
+                saveas(this.response,name+'.mp3');
+            download_(i+1);
+        }
+    }
+    xhr.send();
+
+    if(!download_lrc)return;
+    var blob=new Blob([await get_lrc(i)],{type:"text/plain;charset=utf-8"});
+    saveas(blob,name+'.lrc');
+}
+function download(){
+    mdui.snackbar({message: '开始下载',timeout: 500,position: 'top'});
+    download_(0);
+    mdui.snackbar({message: '下载完成',timeout: 500,position: 'top'});
+}
+
 function selectrev(){
     for(var i=0;i<songlist.length;++i){
         var x=songlist[i].children[2].children[0];
@@ -269,58 +341,72 @@ function selectrev(){
 
 /*----------------------------------*/
 
-function send(str){
-    api=document.getElementById('api').value;
-    var xhr=new XMLHttpRequest();
-    xhr.withCredentials=true;
-    xhr.open('POST',api+str,false);
-    xhr.send();
-    return JSON.parse(xhr.responseText);
-}
-
-function login_email(){
+async function login_email(){
     var email=document.getElementById('input_email').value,
         passwd=document.getElementById('input_email_passwd').value;
-    var res=send('/login?email='+encodeURI(email)+'&password='+encodeURI(passwd));
+    loading.hidden=0;
+    var res=await post_api('/login?email='+encodeURI(email)+'&password='+encodeURI(passwd));
     if(res.code=='200'){
         mdui.snackbar({message: '登录成功',timeout: 1000,position: 'top'});
-        console.log(res);
-        genuser(res);        
+        var user={
+            "id":res.account.id,
+            "name":res.profile.nickname,
+            "avatar":res.profile.avatarUrl,
+            "signature":res.profile.signature,
+        }
+        setCookie('account',JSON.stringify(user));
+        gen_user_playlist(user);
+        gen_daily_recommend_list();
+        login_dialog.close();
+        document.querySelectorAll('.need-login').forEach(x=>{x.hidden=0;});
     }
     else{
         passwd.value='',
         mdui.snackbar({message: '错误,请检查用户名或密码',timeout: 1000,position: 'top'});
     }
+    loading.hidden=1;
 }
 
-function login_phone(){
+async function login_phone(){
     var phone=document.getElementById('input_phone').value,
         passwd=document.getElementById('input_phone_passwd').value;
-    var res=send('/login/cellphone?phone='+encodeURI(phone)+'&password='+encodeURI(passwd));
+    loading.hidden=0;
+    var res=await post_api('/login/cellphone?phone='+encodeURI(phone)+'&password='+encodeURI(passwd));
     if(res.code=='200'){
         mdui.snackbar({message: '登录成功',timeout: 1000,position: 'top'});
-        console.log(res);
-        genuser(res);
+        var user={
+            "id":res.account.id,
+            "name":res.profile.nickname,
+            "avatar":res.profile.avatarUrl,
+            "signature":res.profile.signature,
+        }
+        setCookie('account',JSON.stringify(user));
+        gen_user_playlist(user);
+        gen_daily_recommend_list();
+        login_dialog.close();
+        document.querySelectorAll('.need-login').forEach(x=>{x.hidden=0;});
     }
     else{
         passwd.value='',
         mdui.snackbar({message: '错误,请检查用户名或密码',timeout: 1000,position: 'top'});
     }
+    loading.hidden=1;
 }
 
-function logout(){
-    var res=send('/login/refresh');
+async function logout(){
+    var res=await post_api('/login/refresh');
+    setCookie('account',false);
     if(res.code=='200')
-        mdui.snackbar({message: '已退出登录',timeout: 1000,position: 'top'});
+        mdui.snackbar({message:'已退出登录',timeout:1000,position:'top'}),
+        document.querySelectorAll('.need-login').forEach(x=>{x.hidden=1;});
+
 }
-function changeplaylist(id){document.getElementById('playlistid').value=id;genlist();}
-function genuser(res){
-    document.getElementById('user_name').innerText=res.profile.nickname;
-    document.getElementById('user_avatar').src=res.profile.avatarUrl;
-    document.getElementById('user_signature').innerText=res.profile.signature;
-    var res=getjson('/user/playlist?uid='+res.account.id),
+async function gen_user_playlist(json){
+    document.getElementById('user_name').innerText=json.name;
+    document.getElementById('user_avatar').src=json.avatar;
+    document.getElementById('user_signature').innerText=json.signature;
+    var res=await get_api('/user/playlist?uid='+json.id),
         user_playlist=document.getElementById('user_playlist');
-    console.log(res);
     res=res.playlist;
     for(i in res){
         var x=document.createElement('li'),
@@ -338,8 +424,65 @@ function genuser(res){
         x.appendChild(cover),x.appendChild(name);
 
         x.setAttribute('id',res[i].id);
-        x.onclick=function(){changeplaylist(this.id);}
+        x.onclick=function(){
+            document.getElementById('playlistid').value=this.id;
+            gen_list();
+            user_playlist_dialog.close();
+        }
 
         user_playlist.appendChild(x);
     }
+    user_playlist_dialog.handleUpdate();
+}
+
+async function gen_daily_recommend_list(){
+    var res=await get_api('/recommend/resource'),
+        daily_recommend=document.getElementById('daily_recommend');
+    res=res.recommend;
+    for(i in res){
+        var x=document.createElement('li'),
+            cover=document.createElement('div'),
+            coverimg=document.createElement('img'),
+            title=document.createElement('div'),
+            name=document.createElement('div'),
+            copywriter=document.createElement('div');
+        x.classList.add('mdui-list-item');
+        cover.classList.add('mdui-list-item-avatar'),
+        title.classList.add('mdui-list-item-content'),
+        name.classList.add('mdui-list-item-title'),
+        copywriter.classList.add('mdui-list-item-text');
+
+        coverimg.src=res[i].picUrl;
+        name.innerText=res[i].name;
+        copywriter.innerText=res[i].copywriter;
+
+        cover.appendChild(coverimg);
+        title.appendChild(name),title.appendChild(copywriter);
+        x.appendChild(cover),x.appendChild(title);
+
+        x.setAttribute('id',res[i].id);
+        x.onclick=function(){
+            document.getElementById('playlistid').value=this.id;
+            gen_list();
+            daily_recommend_dialog.close();
+        }
+        daily_recommend.appendChild(x);
+    }
+    daily_recommend_dialog.handleUpdate();
+}
+
+function getCookie(cname){
+    var name=cname+"=",decodedCookie=decodeURIComponent(document.cookie),ca=decodedCookie.split(';'),c;
+    for(i in ca){
+        c=ca[i];
+        while(c.charAt(0)==' ')c=c.substring(1);
+        if(c.indexOf(name)==0)return c.substring(name.length, c.length);
+    }return false;
+}
+function setCookie(cname,cval,exdays=1){
+    if(getCookie(cname)==cval)return;
+    var d=new Date();
+    d.setTime(d.getTime()+(exdays*24*60*60*1000));
+    var expires="expires="+d.toUTCString();
+    document.cookie=cname+"="+cval+";"+expires+";path=/";
 }
