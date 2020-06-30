@@ -28,12 +28,10 @@ if(getCookie('account'))
 
 drawer.open();
 
-function format_s(v){
-    var s=parseInt(v),m,h;
-    if(s<60)return s;
-    m=parseInt(s/60),s%=60;
-    if(m<60)return m+':'+s;
-    return parseInt(m/60)+':'+m%60+s;    
+function format_s(num){
+    return [num/60,num%60].map(v=>{
+        return `${Math.floor(v).toString().padStart(2,'0')}`
+    }).join(':');
 }
 
 function lrc_focus(x=currentLine){
@@ -93,6 +91,15 @@ document.getElementById('song_range').onchange=function(){
 }
 document.getElementById('song_volume').onchange=function(){
     audio.volume=this.value;
+}
+
+document.onkeydown=function(e){
+    var keyCode=e.keyCode||e.which||e.charCode;
+    if(e.ctrlKey&&e.altKey){
+        if(keyCode==37)pre();
+        if(keyCode==39)nxt();        
+        if(keyCode==80)document.getElementById('song_play_toggle').click();
+    }
 }
 
 async function ajax(url,set={}){
