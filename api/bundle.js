@@ -11,7 +11,9 @@ var audio=document.getElementById('player'),
     now=0,
     range=document.getElementById('song_range'),
     order_his=[],
-    order_typ;
+    order_typ=0,
+    repeat=0,
+    played=[];
 var loading=document.getElementById('loading'),
     login_dialog=new mdui.Dialog('#login_dialog'),
     user_playlist_dialog=new mdui.Dialog('#user_playlist_dialog'),
@@ -35,7 +37,7 @@ function format_s(v){
 }
 
 function lrc_focus(x=currentLine){
-    content_right.scroll({top:lrcli[x].offsetTop,behavior:'auto'});
+    content_right.scroll(0,lrcli[x].offsetTop);
     lrcli[x].classList.add('on');
 }
 function lrc_unfocus(x=currentLine){
@@ -44,8 +46,10 @@ function lrc_unfocus(x=currentLine){
 audio.volume=0.5;
 audio.loop=false;
 audio.addEventListener('ended',function(){
-        if(order_typ)rnd();
-        else nxt();
+    audio.pause();
+    if(order_typ)rnd();
+    else nxt();
+    audio.play();
 });
 audio.ontimeupdate=function(){
     currentTime=audio.currentTime;
@@ -77,8 +81,8 @@ audio.onseeked=function(){
     }
 };
 audio.onerror=function(){
-        mdui.snackbar({message: '播放失败,自动下一首',timeout: 500,position: 'top'});
-        nxt();
+    mdui.snackbar({message: '播放失败,自动下一首',timeout: 500,position: 'top'});
+    nxt();
 };
 document.getElementById('song_play_toggle').onclick=function(){
     if(audio.paused)audio.play(),this.children[0].innerText='pause';
@@ -249,24 +253,38 @@ async function play(i){
     songlist[i].children[1].style.fontWeight='bold';
     gen_lrc(i);
     order_his.push(i);
+    played[i]=1;
 }
 function pre(){
     if(order_his.length>1)
         order_his.pop(),play(order_his.pop());
+    else mdui.snackbar({message: '没有上一首了',position: 'top'});
 }
 function nxt(){
     if(order_typ)rnd();
     else{
         if(now<list.length-1)play(now+1);
-        else play(0);
+        else if(repeat)played=[],play(0);
     }
 }
-function rnd(){play(Math.floor((Math.random()*(list.length-1))));}
+function rnd(){
+    var x=Math.floor((Math.random()*(list.length-1)));
+    for(var i=list.length;i;--i)
+        if(played[x])x=Math.floor((Math.random()*(list.length-1)));
+        else{play(x);break;}
+    if(repeat)played=[],play(x);
+}
 function order_toggle(){
     var x=document.getElementById('order_toggle');
     if(order_typ)x.style.color='';
     else x.style.color='#f7a4b9';
     order_typ^=1;
+}
+function repeat_toggle(){
+    var x=document.getElementById('repeat_toggle');
+    if(repeat)x.style.color='';
+    else x.style.color='#f7a4b9';
+    repeat^=1;
 }
 async function geturl(i){
     if(!url[i]){
@@ -407,6 +425,7 @@ async function gen_user_playlist(json){
     document.getElementById('user_signature').innerText=json.signature;
     var res=await get_api('/user/playlist?uid='+json.id),
         user_playlist=document.getElementById('user_playlist');
+    user_playlist.innerHTML="";
     res=res.playlist;
     for(i in res){
         var x=document.createElement('li'),
@@ -438,6 +457,7 @@ async function gen_user_playlist(json){
 async function gen_daily_recommend_list(){
     var res=await get_api('/recommend/resource'),
         daily_recommend=document.getElementById('daily_recommend');
+    daily_recommend.innerHTML="";
     res=res.recommend;
     for(i in res){
         var x=document.createElement('li'),
@@ -469,6 +489,19 @@ async function gen_daily_recommend_list(){
         daily_recommend.appendChild(x);
     }
     daily_recommend_dialog.handleUpdate();
+}
+
+async function like_select(){
+    loading.hidden=0;
+    for(i in list)if(issl[i]){
+        try{
+        var res=await post_api('/like?id='+list[i].id.toString());
+        if(res.code==200)
+            mdui.snackbar({message: "喜欢了 "+list[i].title,timeout: 500,position: 'top'});
+        else console.log("喜欢 "+list[i].title)+"时出错了";
+        }catch{console.log("喜欢 "+list[i].title)+"时出错了";}
+    }
+    loading.hidden=1;
 }
 
 function getCookie(cname){

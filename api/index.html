@@ -33,7 +33,6 @@ li.on .mdui-list-item-content{
     font-size: 20px;
     font-weight:bold;
 }
-ul{transition-duration: 600ms;}
 #loading{z-index:10000000;position: fixed;top:0;bottom:0;left:0;right:0;margin: auto;height: 50px;width: 50px;}
 </style>
 <body class="mdui-bottom-nav-fixed mdui-appbar-inset">
@@ -85,6 +84,10 @@ ul{transition-duration: 600ms;}
             <li class="mdui-list-item" onclick="selectrev()">
                 <i class="mdui-list-item-icon mdui-icon material-icons">exposure</i>
                 <div class="mdui-list-item-content">反选</div>
+            </li>
+            <li class="mdui-list-item" onclick="like_select()">
+                <i class="mdui-list-item-icon mdui-icon material-icons">favorite_border</i>
+                <div class="mdui-list-item-content">喜欢选中</div>
             </li>
             <li class="mdui-list-item" mdui-tooltip="{content:'当前文件下载进度'}">
                 <div class="mdui-progress" id='progressbar'>
@@ -139,6 +142,9 @@ ul{transition-duration: 600ms;}
         </button>
         <button onclick="order_toggle()" class="mdui-btn mdui-btn-icon" id='order_toggle' mdui-tooltip="{content:'随机顺序'}">
             <i class="mdui-icon material-icons">shuffle</i>
+        </button>
+        <button onclick="repeat_toggle()" class="mdui-btn mdui-btn-icon" id='repeat_toggle' mdui-tooltip="{content:'循环播放列表'}">
+            <i class="mdui-icon material-icons">repeat</i>
         </button>
         <audio id="player" control="false" autoplay="autoplay"></audio>
         <a id='song_time' onclick="document.getElementById('song_range_slider').hidden^=1;" mdui-tooltip="{content:'点击显示/隐藏进度条'}">0/0</a>
