@@ -58,3 +58,4 @@ api使用[meting](https://github.com/metowolf/Meting)的官方api,
 - [ ] 电台
 - [ ] 相似音乐
 - [ ] 相似歌单
+- [ ] 网站图标
