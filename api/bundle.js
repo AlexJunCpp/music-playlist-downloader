@@ -513,6 +513,17 @@ async function like_select(){
     loading.hidden=1;
 }
 
+async function like_now(){
+    loading.hidden=0;
+    try{
+        var res=await post_api('/like?id='+list[now].id.toString());
+        if(res.code==200)
+            mdui.snackbar({message: "喜欢了 "+list[now].title,timeout: 500,position: 'top'});
+        else console.log("喜欢 "+list[now].title)+"时出错了";
+    }catch{console.log("喜欢 "+list[now].title)+"时出错了";}
+    loading.hidden=1;
+}
+
 function getCookie(cname){
     var name=cname+"=",decodedCookie=decodeURIComponent(document.cookie),ca=decodedCookie.split(';'),c;
     for(i in ca){
