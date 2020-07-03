@@ -254,8 +254,10 @@ async function play(i){
     if(audio.paused)document.getElementById('song_play_toggle').onclick();
     audio.setAttribute('src',await geturl(i));
     document.getElementById('song_pic').setAttribute('src',list[i].pic);
-    document.getElementById('song_title').innerText=list[i].title;
-    document.getElementById('song_author').innerText=list[i].author;
+    document.getElementById('view_more_song_pic').setAttribute('src',list[i].pic);
+    document.getElementById('song_title').innerText=document.getElementById('view_more_song_title').innerText=list[i].title;
+    document.getElementById('song_author').innerText=document.getElementById('view_more_song_author').innerText=list[i].author;
+    document.getElementById('song_link').href="https://music.163.com/#/song?id="+list[i].id;
     songlist[i].scrollIntoView(false);
     songlist[i].children[1].style.fontWeight='bold';
     gen_lrc(i);

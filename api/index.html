@@ -125,11 +125,13 @@ li.on .mdui-list-item-content{
         <button onclick="drawer.toggle()" class="mdui-btn mdui-btn-icon" mdui-tooltip="{content:'菜单'}">
             <i class='mdui-icon material-icons'>menu</i>
         </button>
-        <div class="mdui-card-header" style="min-width: fit-content;">
-            <img class="mdui-card-header-avatar" id='song_pic'>
-            <div class="mdui-card-header-title" id='song_title'></div>
-            <div class="mdui-card-header-subtitle" id='song_author'></div>
-        </div>
+        <li class="mdui-list-item" mdui-dialog="{target:'#view_more'}" mdui-tooltip="{content:'查看更多'}">
+            <img class="mdui-list-item-avatar" id='song_pic'>
+            <div class="mdui-list-item-content">
+                <div class="mdui-list-item-title" id='song_title'></div>
+                <div class="mdui-list-item-text" id='song_author'></div>
+            </div>
+        </li>
         <button onclick="pre()" class="mdui-btn mdui-btn-icon" mdui-tooltip="{content:'上一首'}">
             <i class='mdui-icon material-icons'>skip_previous</i>
         </button>
@@ -206,6 +208,44 @@ li.on .mdui-list-item-content{
             <div class="mdui-card-primary-title">每日推荐歌单</div>
         </div>
         <ul class="mdui-list" id='daily_recommend'></ul>
+    </div>
+</div>
+
+<div class="mdui-dialog" id="view_more">
+    <div class="mdui-dialog-content">
+        <div class="mdui-card mdui-float-left" style="max-width: 300px;max-height:300px;">
+            <div class="mdui-card-media">
+                <img id='view_more_song_pic'>
+                <div class="mdui-card-media-covered">
+                    <div class="mdui-card-primary">
+                        <div class="mdui-card-primary-title" id='view_more_song_title'></div>
+                        <div class="mdui-card-primary-subtitle" id='view_more_song_author'></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <ul class="mdui-list">
+            <li class="mdui-list-item mdui-ripple">
+                <i class="mdui-list-item-icon mdui-icon material-icons">open_in_new</i>
+                <a href='https://music.163.com' id='song_link' target="_blank" class="mdui-list-item-content">在网易云查看</a>
+            </li>
+            <li class="mdui-list-item mdui-ripple">
+                <i class="mdui-list-item-icon mdui-icon material-icons">comment</i>
+                <div class="mdui-list-item-content" id='song_comment'>查看评论</div>
+            </li>
+            <li class="mdui-list-item mdui-ripple">
+                <i class="mdui-list-item-icon mdui-icon material-icons">music_video</i>
+                <div class="mdui-list-item-content" id='song_mv'>查看mv</div>
+            </li>
+            <li class="mdui-list-item mdui-ripple">
+                <i class="mdui-list-item-icon mdui-icon material-icons">queue_music</i>
+                <div class="mdui-list-item-content" id='similar_song'>相似歌曲</div>
+            </li>
+            <li class="mdui-list-item mdui-ripple">
+                <i class="mdui-list-item-icon mdui-icon material-icons">favorite</i>
+                <div class="mdui-list-item-content" id='like_song'>喜欢</div>
+            </li>
+        </ul>
     </div>
 </div>
 
