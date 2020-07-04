@@ -7,6 +7,8 @@
     <meta name="keywords" content="在线歌单下载器">
     <meta name='description' itemprop="description" content="在线歌单下载器,支持网易云、QQ、酷狗、虾米、百度">
     <title>在线歌单下载器</title>
+    <link rel="shortcut icon" href="../icon.svg">
+    <link rel="bookmark" href="../icon.svg" type="image/x-icon">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/zdhxiong/mdui@0.4.3/dist/css/mdui.min.css" type="text/css">
 </head>
 <style>
@@ -32,6 +34,17 @@ li.on{
 li.on .mdui-list-item-content{
     font-weight:bold;
 }
+#notice{
+    position: fixed;
+    top:5px;
+    right:5px;
+    font-size: 20px;
+    box-shadow: 0 3px 1px -2px rgba(0,0,0,.2), 0 2px 2px 0 rgba(0,0,0,.14), 0 1px 5px 0 rgba(0,0,0,.12);
+    border-radius: 2px;
+    padding: 15px;
+    background-color: #fff;
+    z-index: 1000000;
+}
 #loading{z-index:10000000;position: fixed;top:0;bottom:0;left:0;right:0;margin: auto;height: 50px;width: 50px;}
 </style>
 <body class="mdui-bottom-nav-fixed mdui-appbar-inset">
@@ -45,14 +58,14 @@ li.on .mdui-list-item-content{
     <div class="mdui-drawer mdui-drawer-close mdui-color-white mdui-drawer-full-height" id="drawer">
         <ul class="mdui-list">
             <li class='mdui-subheader'>api</li>
-            <li class="mdui-list-item" mdui-tooltip="{content:'可登录直接获取自己的歌单'}">
+            <li class="mdui-list-item" mdui-tooltip="{content:'api地址'}">
                 <div class='mdui-textfield'>
                     <input id='api' class='mdui-textfield-input' placeholder='api地址' type='text'
                         value="https://netease.music.zcmimi.top">
                 </div>
             </li>
             <li class='mdui-subheader'>歌单id</li>
-            <li class="mdui-list-item" mdui-tooltip="{content:'可登录直接获取自己的歌单'}">
+            <li class="mdui-list-item" mdui-tooltip="{content:'输入歌单id以加载'}">
                 <div class='mdui-textfield'>
                     <input id='playlistid' class='mdui-textfield-input' placeholder='歌单id' type='text'
                         value="3167786119">
@@ -76,7 +89,7 @@ li.on .mdui-list-item-content{
                     <i class="mdui-checkbox-icon"></i>下载歌词
                 </label>
             </li>
-            <li class="mdui-list-item" onclick="download()">
+            <li class="mdui-list-item" onclick="downloadall()">
                 <i class="mdui-list-item-icon mdui-icon material-icons">file_download</i>
                 <div class="mdui-list-item-content">下载选中</div>
             </li>
@@ -88,11 +101,6 @@ li.on .mdui-list-item-content{
                 <i class="mdui-list-item-icon mdui-icon material-icons">favorite_border</i>
                 <div class="mdui-list-item-content">喜欢选中</div>
             </li>
-            <li class="mdui-list-item" mdui-tooltip="{content:'当前文件下载进度'}">
-                <div class="mdui-progress" id='progressbar'>
-                    <div class="mdui-progress-determinate" id='progressbar_' style="width: 0%;"></div>
-                </div>
-            </li>
             <li class='mdui-subheader'>账户</li>
             <li class="mdui-list-item" onclick="login_dialog.open()">
                 <i class="mdui-list-item-icon mdui-icon material-icons">input</i>
@@ -103,12 +111,12 @@ li.on .mdui-list-item-content{
                 <div class="mdui-list-item-content">注销</div>
             </li>
             <li class="mdui-list-item need-login" onclick="user_playlist_dialog.open()" hidden>
-                <i class="mdui-list-item-icon mdui-icon material-icons">favorite</i>
+                <i class="mdui-list-item-icon mdui-icon material-icons">queue_music</i>
                 <div class="mdui-list-item-content">我的歌单</div>
             </li>
             <li class="mdui-list-item need-login" onclick="daily_recommend_dialog.open()" hidden>
                 <i class="mdui-list-item-icon mdui-icon material-icons">today</i>
-                <div class="mdui-list-item-content">每日推荐</div>
+                <div class="mdui-list-item-content">个性化推荐</div>
             </li>
         </ul>
     </div>
@@ -205,7 +213,7 @@ li.on .mdui-list-item-content{
 <div class="mdui-dialog" id="daily_recommend_dialog">
     <div class="mdui-dialog-content">
         <div class="mdui-card-primary">
-            <div class="mdui-card-primary-title">每日推荐歌单</div>
+            <div class="mdui-card-primary-title">个性化推荐</div>
         </div>
         <ul class="mdui-list" id='daily_recommend'></ul>
     </div>
@@ -245,8 +253,15 @@ li.on .mdui-list-item-content{
                 <i class="mdui-list-item-icon mdui-icon material-icons">favorite</i>
                 <div class="mdui-list-item-content" id='like_song'>喜欢</div>
             </li>
+            <li class="mdui-list-item mdui-ripple" onclick="download(now)">
+                <i class="mdui-list-item-icon mdui-icon material-icons">file_download</i>
+                <div class="mdui-list-item-content" id='like_song'>下载</div>
+            </li>
         </ul>
     </div>
+</div>
+
+<div id="notice">
 </div>
 
 <div id='loading' class="mdui-spinner" hidden></div>

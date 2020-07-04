@@ -1,10 +1,11 @@
-var api,list=[],url=[];
+var api,list=[],url=[],len=0;
 var expres;
 var lrcTime=[],
     lrcli,
     currentLine,
     currentTime,
-    songlist,
+    Songlist=document.getElementById('songlist'),
+    songlist=Songlist.children,
     screencenter=window.innerHeight/2;
 var download_lrc=1,issl=[];
 var audio=document.getElementById('player'),
@@ -19,7 +20,8 @@ var loading=document.getElementById('loading'),
     user_playlist_dialog=new mdui.Dialog('#user_playlist_dialog'),
     daily_recommend_dialog=new mdui.Dialog('#daily_recommend_dialog'),
     drawer=new mdui.Drawer('#drawer'),
-    content_right=document.getElementById('content-right');
+    content_right=document.getElementById('content-right'),
+    notice=document.getElementById('notice');
 
 if(getCookie('account'))
     document.querySelectorAll('.need-login').forEach(x=>{x.hidden=0;}),
@@ -79,7 +81,7 @@ audio.onseeked=function(){
     }
 };
 audio.onerror=function(){
-    mdui.snackbar({message: '播放失败,自动下一首',timeout: 500,position: 'top'});
+    notice.innerText='播放失败,自动下一首';
     nxt();
 };
 document.getElementById('song_play_toggle').onclick=function(){
@@ -95,11 +97,20 @@ document.getElementById('song_volume').onchange=function(){
 
 document.onkeydown=function(e){
     var keyCode=e.keyCode||e.which||e.charCode;
-    if(e.ctrlKey&&e.altKey){
+    if(e.ctrlKey){
         if(keyCode==37)pre();
         if(keyCode==39)nxt();        
         if(keyCode==80)document.getElementById('song_play_toggle').click();
     }
+}
+
+document.getElementById('input_email_passwd').onkeydown=function(e){
+    var keyCode=e.keyCode||e.which||e.charCode;
+    if(keyCode==13)login_email();
+}
+document.getElementById('input_phone_passwd').onkeydown=function(e){
+    var keyCode=e.keyCode||e.which||e.charCode;
+    if(keyCode==13)login_phone();
 }
 
 async function ajax(url,set={}){
@@ -122,76 +133,71 @@ async function post_api(str){
     return JSON.parse(text);
 }
 
-async function getplaylist(){
-    list=[];
-    var id=document.getElementById('playlistid').value,
-        playl,ids=[],detl=[],res;
-    res=await get_api('/playlist/detail?id='+id);
-    playl=res.playlist.trackIds;
-    for(i in playl){
-        list.push({
-            'id':playl[i].id,
-            'title':null,
-            'author':null,
-            'pic':null
-        });
-        ids.push(playl[i].id.toString());
-        if(ids.length>100)
-            res=await get_api('/song/detail?ids='+ids.join(',')),
-            detl.push.apply(detl,res.songs),
-            ids=[];
-    }
-    res=await get_api('/song/detail?ids='+ids.join(',')),
-    detl.push.apply(detl,res.songs);
-    for(i in detl){
-        var title=detl[i].name,author=[];
-        for(j in detl[i].ar)author.push(detl[i].ar[j].name);
-        author=author.join('/');
-        list[i].title=title,
-        list[i].author=author,
-        list[i].pic=detl[i].al.picUrl;
-    }
-}
-
 async function gen_list(){
     loading.hidden=0;
-    await getplaylist();
-    songlist=document.getElementById('songlist');
-    songlist.innerHTML='';
-    for(i in list){
-        var li=document.createElement('li'),
-            avatar=document.createElement('div'),
-            pic=document.createElement('img'),
-            a=document.createElement('a'),
-            title=document.createElement('div'),
-            author=document.createElement('div'),
-            label=document.createElement('label'),
-            chkbox=document.createElement('input'),
-            chkicon=document.createElement('i');
+    playlist_clr();
 
-        li.classList.add('mdui-list-item');
-        li.setAttribute('data-id',i);
-        avatar.classList.add('mdui-list-item-avatar');
-        pic.src=list[i].pic+'?param=60y60';
-        a.onclick=function(){play(this.parentElement.getAttribute('data-id'));};
-        a.classList.add('mdui-list-item-content');
-        title.innerText=list[i].title,title.classList.add('mdui-list-item-title');
-        author.innerText=list[i].author,author.classList.add('mdui-list-item-text');
-        label.classList.add('mdui-checkbox');
-        chkbox.onclick=function(){issl[this.parentElement.parentElement.getAttribute('data-id')]^=1;};
-        chkbox.setAttribute('type','checkbox');
-        chkicon.classList.add('mdui-checkbox-icon');
-
-        avatar.appendChild(pic);
-        a.appendChild(title),a.appendChild(author);
-        label.appendChild(chkbox),label.appendChild(chkicon);
-        li.appendChild(avatar),li.appendChild(a),li.appendChild(label);
-        issl[i]=0;
-
-        songlist.appendChild(li);
-    }
-    songlist=songlist.children;
+    var id=document.getElementById('playlistid').value,
+        res=await get_api('/playlist/detail?id='+id),
+        ids=[];
+        
+    for(i of res.playlist.trackIds)ids.push(i.id);
+    playlist_push(ids);
     loading.hidden=1;
+}
+function playlist_clr(){
+    list=[],issl=[],url=[],len=0;
+    Songlist.innerHTML='';
+}
+function Playlist_append(i){
+    var li=document.createElement('li'),
+        avatar=document.createElement('div'),
+        pic=document.createElement('img'),
+        a=document.createElement('a'),
+        title=document.createElement('div'),
+        author=document.createElement('div'),
+        label=document.createElement('label'),
+        chkbox=document.createElement('input'),
+        chkicon=document.createElement('i');
+
+    li.classList.add('mdui-list-item');
+    li.setAttribute('data-id',i);
+    avatar.classList.add('mdui-list-item-avatar');
+    pic.src=list[i].pic+'?param=60y60';
+    a.onclick=function(){play(this.parentElement.getAttribute('data-id'));};
+    a.classList.add('mdui-list-item-content');
+    title.innerText=list[i].title,title.classList.add('mdui-list-item-title');
+    author.innerText=list[i].author,author.classList.add('mdui-list-item-text');
+    label.classList.add('mdui-checkbox');
+    chkbox.onclick=function(){issl[this.parentElement.parentElement.getAttribute('data-id')]^=1;};
+    chkbox.setAttribute('type','checkbox');
+    chkicon.classList.add('mdui-checkbox-icon');
+
+    avatar.append(pic);
+    a.append(title,author);
+    label.append(chkbox,chkicon);
+    li.append(avatar,a,label);
+    issl[i]=0;
+
+    Songlist.append(li);
+}
+async function playlist_push(arr){
+    var res,ids=[],blk=100;
+    for(var i=0;i<arr.length;i+=blk){
+        var ids=arr.slice(i,i+blk),
+            res=await get_api('/song/detail?ids='+ids.join(','));
+        for(let x of res.songs){
+            var author=[];
+            for(let j of x.ar)author.push(j.name);
+            list.push({
+                'id':ids.shift(),
+                'title':x.name,
+                'author':author.join('/'),
+                'pic':x.al.picUrl
+            });
+            Playlist_append(len++);
+        }
+    }
 }
 
 function lrcsplit(str){
@@ -241,10 +247,9 @@ async function gen_lrc(i){
             if(l1&&lrc_time(tr[j])==lrcTime[i]&&j<tr.length)
                 t2.innerText=lrcsplit(tr[j]);
         }catch{}
-        y.appendChild(t1);
-        y.appendChild(t2);
-        x.appendChild(y);
-        lrcul.appendChild(x);
+        y.append(t1,t2);
+        x.append(y);
+        lrcul.append(x);
     }
     lrcli=document.querySelectorAll('#lrclist li');
 }
@@ -267,19 +272,19 @@ async function play(i){
 function pre(){
     if(order_his.length>1)
         order_his.pop(),play(order_his.pop());
-    else mdui.snackbar({message: '没有上一首了',position: 'top'});
+    else notice.innerText='没有上一首了';
 }
 function nxt(){
     if(order_typ)rnd();
     else{
-        if(now<list.length-1)play(now+1);
+        if(now<len-1)play(now+1);
         else if(repeat)played=[],play(0);
     }
 }
 function rnd(){
-    var x=Math.floor((Math.random()*(list.length-1)));
-    for(var i=list.length;i;--i)
-        if(played[x])x=Math.floor((Math.random()*(list.length-1)));
+    var x=Math.floor((Math.random()*(len-1)));
+    for(var i=len;i;--i)
+        if(played[x])x=Math.floor((Math.random()*(len-1)));
         else{play(x);break;}
     if(repeat)played=[],play(x);
 }
@@ -314,51 +319,35 @@ function saveas(res,filename){
     a.href=window.URL.createObjectURL(blob);
     a.click();
 }
-async function download_(i){
-    while(!issl[i]&&i<list.length)++i;
-    if(i>=list.length)return;
-    songlist[i].scrollIntoView(false);
-    songlist[i].style.background='#ffeaf0';
-    
+async function download(i){
     var name=list[i].author+"-"+list[i].title,
         val=document.getElementById('download_name').value;
     if(val==1)name=list[i].title+"-"+list[i].author;
     else if(val==2)name=list[i].title;
 
     var tmp=name,r="/\\*?<>|?:";name='';
-    for(var j=0;j<tmp.length;++j)
-        if(r.indexOf(tmp[j])!=-1)name+='_';
-        else name+=tmp[j];
-    console.log((i+1)+'/'+list.length);
+    for(let j of tmp)
+        if(r.indexOf(h)!=-1)name+='_';
+        else name+=j;
 
-    var xhr=new XMLHttpRequest();
-    xhr.onprogress=function(e){
-        if(e.lengthComputable)
-            document.getElementById("progressbar_").style.width=Math.round(100*e.loaded/e.total)+'%';
-    };
-    xhr.responseType="blob";
-    xhr.open("GET",await geturl(i),true);
-    xhr.onreadystatechange=function(e){
-        if(this.readyState==4){
-            if(this.status==200)
-                saveas(this.response,name+'.mp3');
-            download_(i+1);
-        }
-    }
-    xhr.send();
+    notice.innerText='正在下载'+name;
+
+    await fetch(await geturl(i)).
+        then(res=>res.blob().then(blob=>saveas(blob,name+'.mp3')));
 
     if(!download_lrc)return;
     var blob=new Blob([await get_lrc(i)],{type:"text/plain;charset=utf-8"});
     saveas(blob,name+'.lrc');
 }
-function download(){
-    mdui.snackbar({message: '开始下载',timeout: 500,position: 'top'});
-    download_(0);
-    mdui.snackbar({message: '下载完成',timeout: 500,position: 'top'});
+async function downloadall(){
+    for(i in list)if(issl[i]){
+        console.log(i);
+        try{await download(i);}catch{}
+    }
 }
 
 function selectrev(){
-    for(var i=0;i<songlist.length;++i){
+    for(var i=0;i<len;++i){
         var x=songlist[i].children[2].children[0];
         if(issl[i])x.checked=false;
         else x.checked=1;
@@ -374,7 +363,7 @@ async function login_email(){
     loading.hidden=0;
     var res=await post_api('/login?email='+encodeURI(email)+'&password='+encodeURI(passwd));
     if(res.code=='200'){
-        mdui.snackbar({message: '登录成功',timeout: 1000,position: 'top'});
+        notice.innerText='登录成功';
         var user={
             "id":res.account.id,
             "name":res.profile.nickname,
@@ -389,7 +378,7 @@ async function login_email(){
     }
     else{
         passwd.value='',
-        mdui.snackbar({message: '错误,请检查用户名或密码',timeout: 1000,position: 'top'});
+        notice.innerText='错误,请检查用户名或密码';
     }
     loading.hidden=1;
 }
@@ -400,7 +389,7 @@ async function login_phone(){
     loading.hidden=0;
     var res=await post_api('/login/cellphone?phone='+encodeURI(phone)+'&password='+encodeURI(passwd));
     if(res.code=='200'){
-        mdui.snackbar({message: '登录成功',timeout: 1000,position: 'top'});
+        notice.innerText='登录成功';
         var user={
             "id":res.account.id,
             "name":res.profile.nickname,
@@ -415,7 +404,7 @@ async function login_phone(){
     }
     else{
         passwd.value='',
-        mdui.snackbar({message: '错误,请检查用户名或密码',timeout: 1000,position: 'top'});
+        notice.innerText='错误,请检查用户名或密码';
     }
     loading.hidden=1;
 }
@@ -424,7 +413,7 @@ async function logout(){
     var res=await post_api('/login/refresh');
     setCookie('account',false);
     if(res.code=='200')
-        mdui.snackbar({message:'已退出登录',timeout:1000,position:'top'}),
+        notice.innerText='已退出登录',
         document.querySelectorAll('.need-login').forEach(x=>{x.hidden=1;});
 
 }
@@ -448,8 +437,8 @@ async function gen_user_playlist(json){
         coverimg.src=res[i].coverImgUrl;
         name.innerText=res[i].name;
 
-        cover.appendChild(coverimg);
-        x.appendChild(cover),x.appendChild(name);
+        cover.append(coverimg);
+        x.append(cover,name);
 
         x.setAttribute('id',res[i].id);
         x.onclick=function(){
@@ -458,17 +447,39 @@ async function gen_user_playlist(json){
             user_playlist_dialog.close();
         }
 
-        user_playlist.appendChild(x);
+        user_playlist.append(x);
     }
     user_playlist_dialog.handleUpdate();
 }
 
 async function gen_daily_recommend_list(){
-    var res=await get_api('/recommend/resource'),
-        daily_recommend=document.getElementById('daily_recommend');
+    var daily_recommend=document.getElementById('daily_recommend');
     daily_recommend.innerHTML="";
-    res=res.recommend;
-    for(i in res){
+
+    var x=document.createElement('li'),
+        cover=document.createElement('i'),
+        title=document.createElement('div'),
+        name=document.createElement('div'),
+        copywriter=document.createElement('div');
+    x.classList.add('mdui-list-item');
+    cover.classList.add('mdui-list-item-avatar','mdui-icon','material-icons'),
+    title.classList.add('mdui-list-item-content'),
+    name.classList.add('mdui-list-item-title'),
+    copywriter.classList.add('mdui-list-item-text');
+
+    cover.innerHTML='today';
+    name.innerText='每日歌曲推荐';
+    copywriter.innerText='根据你的口味生成,每天6:00更新';
+    title.append(name,copywriter);
+    x.append(cover,title);
+    x.onclick=function(){
+        gen_daily_recommend_song();
+        daily_recommend_dialog.close();
+    }
+    daily_recommend.append(x);
+
+    var res=await get_api('/recommend/resource');
+    for(i of res.recommend){
         var x=document.createElement('li'),
             cover=document.createElement('div'),
             coverimg=document.createElement('img'),
@@ -481,47 +492,50 @@ async function gen_daily_recommend_list(){
         name.classList.add('mdui-list-item-title'),
         copywriter.classList.add('mdui-list-item-text');
 
-        coverimg.src=res[i].picUrl;
-        name.innerText=res[i].name;
-        copywriter.innerText=res[i].copywriter;
+        coverimg.src=i.picUrl;
+        name.innerText=i.name;
+        copywriter.innerText=i.copywriter;
 
-        cover.appendChild(coverimg);
-        title.appendChild(name),title.appendChild(copywriter);
-        x.appendChild(cover),x.appendChild(title);
+        cover.append(coverimg);
+        title.append(name,copywriter);
+        x.append(cover,title);
 
-        x.setAttribute('id',res[i].id);
+        x.setAttribute('id',i.id);
         x.onclick=function(){
             document.getElementById('playlistid').value=this.id;
             gen_list();
             daily_recommend_dialog.close();
         }
-        daily_recommend.appendChild(x);
+        daily_recommend.append(x);
     }
     daily_recommend_dialog.handleUpdate();
 }
 
-async function like_select(){
+async function gen_daily_recommend_song(){
     loading.hidden=0;
-    for(i in list)if(issl[i]){
-        try{
-        var res=await post_api('/like?id='+list[i].id.toString());
-        if(res.code==200)
-            mdui.snackbar({message: "喜欢了 "+list[i].title,timeout: 500,position: 'top'});
-        else console.log("喜欢 "+list[i].title)+"时出错了";
-        }catch{console.log("喜欢 "+list[i].title)+"时出错了";}
-    }
+    playlist_clr();
+    var res=await get_api('/recommend/songs'),ids=[];
+    for(let i of res.data.dailySongs)ids.push(i.id);
+    playlist_push(ids);
     loading.hidden=1;
 }
 
-async function like_now(){
+async function like(i){
     loading.hidden=0;
     try{
-        var res=await post_api('/like?id='+list[now].id.toString());
+        var res=await post_api('/like?id='+list[i].id.toString());
         if(res.code==200)
-            mdui.snackbar({message: "喜欢了 "+list[now].title,timeout: 500,position: 'top'});
-        else console.log("喜欢 "+list[now].title)+"时出错了";
-    }catch{console.log("喜欢 "+list[now].title)+"时出错了";}
+            notice.innerText="喜欢了 "+list[i].title;
+        else console.log("喜欢 "+list[i].title)+"时出错了";
+    }catch{console.log("喜欢 "+list[i].title)+"时出错了";}
     loading.hidden=1;
+}
+async function like_select(){
+    for(i in list)if(issl[i])await like(i);
+}
+
+function notice(str){
+    
 }
 
 function getCookie(cname){
@@ -529,7 +543,7 @@ function getCookie(cname){
     for(i in ca){
         c=ca[i];
         while(c.charAt(0)==' ')c=c.substring(1);
-        if(c.indexOf(name)==0)return c.substring(name.length, c.length);
+        if(c.indexOf(name)==0)return c.substring(name.length,c.length);
     }return false;
 }
 function setCookie(cname,cval,exdays=1){
