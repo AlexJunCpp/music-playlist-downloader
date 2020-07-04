@@ -163,7 +163,7 @@ function Playlist_append(i){
     li.classList.add('mdui-list-item');
     li.setAttribute('data-id',i);
     avatar.classList.add('mdui-list-item-avatar');
-    pic.src=list[i].pic+'?param=60y60';
+    pic.src=list[i].pic+'?param=40y40';
     a.onclick=function(){play(this.parentElement.getAttribute('data-id'));};
     a.classList.add('mdui-list-item-content');
     title.innerText=list[i].title,title.classList.add('mdui-list-item-title');
@@ -258,7 +258,7 @@ async function play(i){
     now=Number(i);
     if(audio.paused)document.getElementById('song_play_toggle').onclick();
     audio.setAttribute('src',await geturl(i));
-    document.getElementById('song_pic').setAttribute('src',list[i].pic);
+    document.getElementById('song_pic').setAttribute('src',list[i].pic+'?param=40y40');
     document.getElementById('view_more_song_pic').setAttribute('src',list[i].pic);
     document.getElementById('song_title').innerText=document.getElementById('view_more_song_title').innerText=list[i].title;
     document.getElementById('song_author').innerText=document.getElementById('view_more_song_author').innerText=list[i].author;
@@ -327,7 +327,7 @@ async function download(i){
 
     var tmp=name,r="/\\*?<>|?:";name='';
     for(let j of tmp)
-        if(r.indexOf(h)!=-1)name+='_';
+        if(r.indexOf(j)!=-1)name+='_';
         else name+=j;
 
     notice.innerText='正在下载'+name;
