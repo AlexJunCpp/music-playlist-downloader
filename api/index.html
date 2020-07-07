@@ -36,13 +36,16 @@ li.on .mdui-list-item-content{
 }
 #notice{
     position: fixed;
-    top:5px;
-    right:5px;
+    top:0;
+    left: 0;
+    right:0;
+    width: fit-content;
+    margin: auto;
     font-size: 20px;
-    box-shadow: 0 3px 1px -2px rgba(0,0,0,.2), 0 2px 2px 0 rgba(0,0,0,.14), 0 1px 5px 0 rgba(0,0,0,.12);
     border-radius: 2px;
-    padding: 15px;
-    background-color: #fff;
+    background-color: rgba(0, 0, 0, 0.603);
+    color: #fff;
+    padding: 10px;
     z-index: 1000000;
 }
 #loading{z-index:10000000;position: fixed;top:0;bottom:0;left:0;right:0;margin: auto;height: 50px;width: 50px;}
@@ -109,6 +112,10 @@ li.on .mdui-list-item-content{
             <li class="mdui-list-item need-login" onclick="logout()" hidden>
                 <i class="mdui-list-item-icon mdui-icon material-icons">clear</i>
                 <div class="mdui-list-item-content">注销</div>
+            </li>
+            <li class="mdui-list-item need-login" onclick="daily_signin()" hidden>
+                <i class="mdui-list-item-icon mdui-icon material-icons">check</i>
+                <div class="mdui-list-item-content">签到</div>
             </li>
             <li class="mdui-list-item need-login" onclick="user_playlist_dialog.open()" hidden>
                 <i class="mdui-list-item-icon mdui-icon material-icons">queue_music</i>
@@ -261,8 +268,7 @@ li.on .mdui-list-item-content{
     </div>
 </div>
 
-<div id="notice">
-</div>
+<div id="notice" style="opacity:0;"></div>
 
 <div id='loading' class="mdui-spinner" hidden></div>
 <script src="https://cdn.jsdelivr.net/gh/zdhxiong/mdui@0.4.3/dist/js/mdui.min.js"></script>

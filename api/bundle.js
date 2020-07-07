@@ -21,7 +21,7 @@ var loading=document.getElementById('loading'),
     daily_recommend_dialog=new mdui.Dialog('#daily_recommend_dialog'),
     drawer=new mdui.Drawer('#drawer'),
     content_right=document.getElementById('content-right'),
-    notice=document.getElementById('notice');
+    notice=document.getElementById('notice'),noticefade;
 
 if(getCookie('account'))
     document.querySelectorAll('.need-login').forEach(x=>{x.hidden=0;}),
@@ -81,7 +81,7 @@ audio.onseeked=function(){
     }
 };
 audio.onerror=function(){
-    notice.innerText='播放失败,自动下一首';
+    Notice('播放失败,自动下一首');
     nxt();
 };
 document.getElementById('song_play_toggle').onclick=function(){
@@ -272,7 +272,7 @@ async function play(i){
 function pre(){
     if(order_his.length>1)
         order_his.pop(),play(order_his.pop());
-    else notice.innerText='没有上一首了';
+    else Notice('没有上一首了');
 }
 function nxt(){
     if(order_typ)rnd();
@@ -330,7 +330,7 @@ async function download(i){
         if(r.indexOf(j)!=-1)name+='_';
         else name+=j;
 
-    notice.innerText='正在下载'+name;
+    Notice('正在下载'+name);
 
     await fetch(await geturl(i)).
         then(res=>res.blob().then(blob=>saveas(blob,name+'.mp3')));
@@ -363,7 +363,7 @@ async function login_email(){
     loading.hidden=0;
     var res=await post_api('/login?email='+encodeURI(email)+'&password='+encodeURI(passwd));
     if(res.code=='200'){
-        notice.innerText='登录成功';
+        Notice('登录成功');
         var user={
             "id":res.account.id,
             "name":res.profile.nickname,
@@ -378,7 +378,7 @@ async function login_email(){
     }
     else{
         passwd.value='',
-        notice.innerText='错误,请检查用户名或密码';
+        Notice('错误,请检查用户名或密码');
     }
     loading.hidden=1;
 }
@@ -389,7 +389,7 @@ async function login_phone(){
     loading.hidden=0;
     var res=await post_api('/login/cellphone?phone='+encodeURI(phone)+'&password='+encodeURI(passwd));
     if(res.code=='200'){
-        notice.innerText='登录成功';
+        Notice('登录成功');
         var user={
             "id":res.account.id,
             "name":res.profile.nickname,
@@ -404,7 +404,7 @@ async function login_phone(){
     }
     else{
         passwd.value='',
-        notice.innerText='错误,请检查用户名或密码';
+        Notice('错误,请检查用户名或密码');
     }
     loading.hidden=1;
 }
@@ -413,7 +413,7 @@ async function logout(){
     var res=await post_api('/login/refresh');
     setCookie('account',false);
     if(res.code=='200')
-        notice.innerText='已退出登录',
+        Notice('已退出登录'),
         document.querySelectorAll('.need-login').forEach(x=>{x.hidden=1;});
 
 }
@@ -525,7 +525,7 @@ async function like(i){
     try{
         var res=await post_api('/like?id='+list[i].id.toString());
         if(res.code==200)
-            notice.innerText="喜欢了 "+list[i].title;
+            Notice("喜欢了 "+list[i].title);
         else console.log("喜欢 "+list[i].title)+"时出错了";
     }catch{console.log("喜欢 "+list[i].title)+"时出错了";}
     loading.hidden=1;
@@ -534,10 +534,30 @@ async function like_select(){
     for(i in list)if(issl[i])await like(i);
 }
 
-function notice(str){
-    
+async function daily_signin(){
+    loading.hidden=0;
+    try{
+        var res=await post_api('/daily_signin');
+        if(res.code==200)Notice('签到成功');
+        else if(res.code==-2)Notice('重复签到');
+    }
+    catch{Notice('签到时出错');}
+    loading.hidden=1;
 }
-
+function sleep(time){return new Promise((resolve)=>setTimeout(resolve,time));}
+function Notice(str,timeout=1000){
+    notice.innerText=str;
+    notice.style.opacity=1;
+    noticefade=0;
+    function fade(){
+        if(noticefade)if((notice.style.opacity-=0.01)>0)
+        requestAnimationFrame(fade);
+    }
+    sleep(timeout).then(()=>{
+        noticefade=1;
+        fade();
+    });
+}
 function getCookie(cname){
     var name=cname+"=",decodedCookie=decodeURIComponent(document.cookie),ca=decodedCookie.split(';'),c;
     for(i in ca){
