@@ -46,10 +46,8 @@ function lrc_unfocus(x=currentLine){
 audio.volume=0.5;
 audio.loop=false;
 audio.addEventListener('ended',function(){
-    audio.pause();
     if(order_typ)rnd();
     else nxt();
-    audio.play();
 });
 audio.ontimeupdate=function(){
     currentTime=audio.currentTime;
@@ -84,6 +82,46 @@ audio.onerror=function(){
     Notice('播放失败,自动下一首');
     nxt();
 };
+
+async function play(i){
+    songlist[now].children[1].style.fontWeight='normal';
+    now=Number(i);
+    if(audio.paused)document.getElementById('song_play_toggle').onclick();
+    audio.pause();
+    audio.setAttribute('src',await geturl(i));
+    audio.play();
+    Notice('正在播放 '+list[i].title);
+    document.getElementById('song_pic').setAttribute('src',list[i].pic+'?param=40y40');
+    document.getElementById('view_more_song_pic').setAttribute('src',list[i].pic);
+    document.getElementById('song_title').innerText=document.getElementById('view_more_song_title').innerText=list[i].title;
+    document.getElementById('song_author').innerText=document.getElementById('view_more_song_author').innerText=list[i].author;
+    document.getElementById('song_link').href="https://music.163.com/#/song?id="+list[i].id;
+    songlist[i].scrollIntoView(false);
+    songlist[i].children[1].style.fontWeight='bold';
+    gen_lrc(i);
+    order_his.push(i);
+    played[i]=1;
+}
+function pre(){
+    if(order_his.length>1)
+        order_his.pop(),play(order_his.pop());
+    else Notice('没有上一首了');
+}
+function nxt(){
+    if(order_typ)rnd();
+    else{
+        if(now<len-1)play(now+1);
+        else if(repeat)played=[],play(0);
+    }
+}
+function rnd(){
+    var x=Math.floor((Math.random()*(len-1)));
+    for(var i=len;i;--i)
+        if(played[x])x=Math.floor((Math.random()*(len-1)));
+        else{play(x);break;}
+    if(repeat)played=[],play(x);
+}
+
 document.getElementById('song_play_toggle').onclick=function(){
     if(audio.paused)audio.play(),this.children[0].innerText='pause';
     else audio.pause(),this.children[0].innerText='play_arrow';
@@ -252,41 +290,6 @@ async function gen_lrc(i){
         lrcul.append(x);
     }
     lrcli=document.querySelectorAll('#lrclist li');
-}
-async function play(i){
-    songlist[now].children[1].style.fontWeight='normal';
-    now=Number(i);
-    if(audio.paused)document.getElementById('song_play_toggle').onclick();
-    audio.setAttribute('src',await geturl(i));
-    document.getElementById('song_pic').setAttribute('src',list[i].pic+'?param=40y40');
-    document.getElementById('view_more_song_pic').setAttribute('src',list[i].pic);
-    document.getElementById('song_title').innerText=document.getElementById('view_more_song_title').innerText=list[i].title;
-    document.getElementById('song_author').innerText=document.getElementById('view_more_song_author').innerText=list[i].author;
-    document.getElementById('song_link').href="https://music.163.com/#/song?id="+list[i].id;
-    songlist[i].scrollIntoView(false);
-    songlist[i].children[1].style.fontWeight='bold';
-    gen_lrc(i);
-    order_his.push(i);
-    played[i]=1;
-}
-function pre(){
-    if(order_his.length>1)
-        order_his.pop(),play(order_his.pop());
-    else Notice('没有上一首了');
-}
-function nxt(){
-    if(order_typ)rnd();
-    else{
-        if(now<len-1)play(now+1);
-        else if(repeat)played=[],play(0);
-    }
-}
-function rnd(){
-    var x=Math.floor((Math.random()*(len-1)));
-    for(var i=len;i;--i)
-        if(played[x])x=Math.floor((Math.random()*(len-1)));
-        else{play(x);break;}
-    if(repeat)played=[],play(x);
 }
 function order_toggle(){
     var x=document.getElementById('order_toggle');
